@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react'
+import { imgSrc } from '@/lib/image'
 
 type Props = {
   images: string[]
@@ -69,7 +70,7 @@ export default function ProductGallery({ images, name, badge }: Props) {
           onClick={() => openLightbox(active)}>
           <Image
             key={all[active]}
-            src={all[active]}
+            src={imgSrc(all[active])}
             alt={`${name} - imagen ${active + 1}`}
             fill
             className="object-cover transition-opacity duration-300"
@@ -120,7 +121,7 @@ export default function ProductGallery({ images, name, badge }: Props) {
                     : 'border-transparent opacity-60 hover:opacity-100 hover:border-gray-300'}`}
               >
                 <Image
-                  src={src}
+                  src={imgSrc(src)}
                   alt={`${name} miniatura ${i + 1}`}
                   fill
                   className="object-cover"
@@ -166,7 +167,7 @@ export default function ProductGallery({ images, name, badge }: Props) {
           >
             <Image
               key={all[lightboxIdx]}
-              src={all[lightboxIdx]}
+              src={imgSrc(all[lightboxIdx])}
               alt={`${name} - imagen ${lightboxIdx + 1}`}
               fill
               className="object-contain"
@@ -196,7 +197,7 @@ export default function ProductGallery({ images, name, badge }: Props) {
                       ? 'border-white scale-110'
                       : 'border-white/20 opacity-50 hover:opacity-80'}`}
                 >
-                  <Image src={src} alt="" fill className="object-cover" sizes="56px" />
+                  <Image src={imgSrc(src)} alt="" fill className="object-cover" sizes="56px" />
                 </button>
               ))}
             </div>

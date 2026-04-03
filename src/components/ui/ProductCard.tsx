@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Product } from '@/data/products'
+import { imgSrc } from '@/lib/image'
 
 type Props = { product: Product }
 
@@ -15,7 +16,7 @@ export default function ProductCard({ product }: Props) {
       {/* Image */}
       <div className="relative aspect-square bg-gray-50 overflow-hidden">
         <Image
-          src={product.image}
+          src={imgSrc(product.image)}
           alt={product.name}
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-500"
