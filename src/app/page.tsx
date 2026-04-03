@@ -5,8 +5,6 @@ import CategoryCard from '@/components/ui/CategoryCard'
 import NewsletterForm from '@/components/ui/NewsletterForm'
 import { getTopSelling, getFeaturedProducts, categories } from '@/data/products'
 
-export const dynamic = 'force-dynamic'
-
 const players = [
   { name: 'Ale Galán', slug: 'ale-galan', emoji: '🏆' },
   { name: 'Agustín Tapia', slug: 'tapia', emoji: '⚡' },
