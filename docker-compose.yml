@@ -1,0 +1,31 @@
+services:
+  padel-shop:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: padel-shop
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    volumes:
+      - ./public/images:/app/public/images   # imágenes scrapeadas en tiempo real
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  scraper:
+    build:
+      context: ./scraper
+      dockerfile: Dockerfile
+    container_name: padel-scraper
+    volumes:
+      - ./public/images:/app/public/images   # escribe imágenes aquí
+      - ./src/data:/app/src/data             # escribe products.ts aquí
+      - ./scraper:/app/scraper               # código del scraper (live reload)
+    profiles:
+      - scraper   # solo se arranca con: docker compose --profile scraper run scraper
