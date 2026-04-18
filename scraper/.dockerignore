@@ -1,0 +1,13 @@
+.env
+__pycache__/
+dashboard/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+scraped_products.json
+scraped_canaveral.json
+padelpoint_scraped.json
+*.json
+seo_preview.html
+run_dashboard.sh

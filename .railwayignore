@@ -1,0 +1,17 @@
+# Ficheros que Railway no necesita en el build
+scraper/.env
+scraper/scraped_products.json
+scraper/scraped_canaveral.json
+scraper/padelpoint_scraped.json
+scraper/__pycache__/
+scraper/dashboard/__pycache__/
+portal/
+nginx.conf
+reports/
+public/
+src/
+node_modules/
+.venv/
+*.pyc
+*.pyo
+.DS_Store

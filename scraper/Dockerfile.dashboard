@@ -1,0 +1,41 @@
+# ── Build stage ──────────────────────────────────────────────────────────────
+FROM python:3.12-slim AS builder
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends gcc && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+# ── Runtime stage ─────────────────────────────────────────────────────
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY --from=builder /install /usr/local
+COPY . .
+
+# Usuario no-root por seguridad
+RUN useradd -m appuser && chown -R appuser /app
+USER appuser
+
+# Railway inyecta PORT; por defecto 5050 en local
+ENV PORT=5050
+EXPOSE $PORT
+
+# gunicorn + gevent:
+# -w 1: un worker (gevent gestiona concurrencia con greenlets)
+# -k gevent: worker async, esencial para endpoints /stream (SSE)
+# --timeout 120: para operaciones largas de scraping/upload
+# --worker-connections 100: conexiones simultáneas
+CMD gunicorn \
+    --worker-class gevent \
+    --workers 1 \
+    --worker-connections 100 \
+    --timeout 120 \
+    --bind 0.0.0.0:$PORT \
+    --access-logfile - \
+    --error-logfile - \
+    --log-level info \
+    dashboard.app:app
