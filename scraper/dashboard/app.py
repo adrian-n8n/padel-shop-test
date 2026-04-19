@@ -392,6 +392,62 @@ def get_shopify_products():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/products/shopify-all", methods=["GET"])
+def get_all_shopify_products():
+    """Devuelve todos los productos de Shopify normalizados para la tabla."""
+    env = read_env()
+    if not env.get("SHOPIFY_STORE") or not env.get("SHOPIFY_TOKEN"):
+        return jsonify({"error": "No configurado"}), 400
+    try:
+        _apply_env_to_uploader(env)
+        store = env["SHOPIFY_STORE"]
+        token = env["SHOPIFY_TOKEN"]
+        headers = {"X-Shopify-Access-Token": token, "Content-Type": "application/json"}
+        base = f"https://{store}/admin/api/2024-01"
+        products = []
+        url = f"{base}/products.json"
+        params = {"limit": 250, "fields": "id,title,handle,images,variants,product_type,tags,status"}
+        while url:
+            r = requests.get(url, headers=headers, params=params, timeout=30)
+            r.raise_for_status()
+            prods = r.json().get("products", [])
+            for p in prods:
+                variant   = p["variants"][0] if p.get("variants") else {}
+                price     = float(variant.get("price", 0) or 0)
+                barcode   = variant.get("barcode") or variant.get("sku") or ""
+                inv       = variant.get("inventory_quantity", 0) or 0
+                img       = p["images"][0]["src"] if p.get("images") else ""
+                all_imgs  = [i["src"] for i in p.get("images", [])]
+                products.append({
+                    "slug":          p["handle"],
+                    "name":          p["title"],
+                    "brand":         "",
+                    "category":      p.get("product_type", ""),
+                    "price":         price if price else None,
+                    "originalPrice": None,
+                    "discount":      None,
+                    "image":         img,
+                    "images":        all_imgs,
+                    "inStock":       inv > 0,
+                    "stock":         inv,
+                    "productUrl":    f"https://{store}/products/{p['handle']}",
+                    "ean":           barcode,
+                    "source":        "shopify",
+                })
+            link = r.headers.get("Link", "")
+            next_url = None
+            for part in link.split(","):
+                if 'rel="next"' in part:
+                    next_url = part.strip().split(";")[0].strip().strip("<>")
+                    break
+            url = next_url
+            params = {}
+            if prods:
+                import time as _t; _t.sleep(0.2)
+        return jsonify({"products": products, "total": len(products)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # ── Scraping con streaming ─────────────────────────────────────────────────────
 def _run_scrape(categories: list, pages: int):
     _scrape_running.set()

@@ -123,8 +123,40 @@ async function loadShopifyHandles() {
   }
 }
 
+/* ── Cargar todos los productos de Shopify ──────────────────────────────── */
+async function loadAllShopifyProducts() {
+  const btn = $("load-shopify-all-btn");
+  btn.disabled = true;
+  btn.textContent = "Cargando…";
+  setMsg("load-shopify-msg", "", "");
+  log("Cargando todos los productos de Shopify…", "info");
+  try {
+    const data = await fetch("/api/products/shopify-all").then(r => r.json());
+    if (data.error) { log("Error: " + data.error, "err"); setMsg("load-shopify-msg", data.error, "err"); return; }
+    // Guardar handles/barcodes del resultado
+    state.shopifyHandles  = new Set(data.products.map(p => p.slug));
+    state.shopifyBarcodes = {};
+    data.products.forEach(p => { if (p.ean) state.shopifyBarcodes[p.slug] = p.ean; });
+    state.products = data.products;
+    $('scrape-badge').textContent = `${data.total} productos (Shopify)`;
+    $('scrape-badge').className = 'badge badge-green';
+    log(`Shopify: ${data.total} productos cargados`, "ok");
+    setMsg("load-shopify-msg", `✓ ${data.total} productos`, "ok");
+    renderTable(state.products);
+    updateStats();
+  } catch(e) {
+    log("Error cargando Shopify: " + e.message, "err");
+    setMsg("load-shopify-msg", e.message, "err");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "📦 Cargar todos los productos";
+  }
+}
+
+$("load-shopify-all-btn").addEventListener("click", loadAllShopifyProducts);
+
 /* ── Scraping ─────────────────────────────────────────────────────────────── */
-$("scrape-btn").addEventListener("click", async () => {
+$('scrape-btn').addEventListener('click', async () => {
   const cats  = [...document.querySelectorAll("#cat-group input:checked")].map(i => i.value);
   const pages = parseInt($("pages-input").value) || 3;
   if (!cats.length) { log("Selecciona al menos una categoría", "warn"); return; }
@@ -233,7 +265,7 @@ function renderTable(products) {
     if (filter === 'new'      && !isNew)     return false;
     if (filter === 'existing' && isNew)      return false;
     if (filter === 'sale'     && !p.discount) return false;
-    const ean = state.shopifyBarcodes[p.slug] || "";
+    const ean = p.ean || state.shopifyBarcodes[p.slug] || "";
     if (tokens.length && !tokenMatch(p.name, tokens) &&
                          !tokenMatch(p.brand, tokens) &&
                          !tokenMatch(ean, tokens)) return false;
@@ -267,12 +299,14 @@ function renderTable(products) {
       ? `<img src="${escHtml(img)}" alt="${escHtml(p.name)}" loading="lazy" data-slug="${p.slug}" class="product-thumb-click" title="Ver fotos" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2244%22 height=%2244%22><rect width=%2244%22 height=%2244%22 fill=%22%231e2535%22/></svg>'">`
       : `<div style="width:44px;height:44px;background:var(--bg3);border-radius:6px;cursor:pointer" class="product-thumb-click" data-slug="${p.slug}" title="Ver fotos"></div>`;
 
-    const ean      = state.shopifyBarcodes[p.slug] || "";
+    const ean      = p.ean || state.shopifyBarcodes[p.slug] || "";
     const priceTxt = p.price ? `${p.price.toFixed(2)} €` : "—";
     const discTxt  = p.discount ? `<span class="tag-discount">-${p.discount}%</span>` : "—";
-    const statusEl = isNew
-      ? `<span class="tag-new">Nuevo</span>`
-      : `<span class="tag-existing">En Shopify</span>`;
+    const statusEl = p.source === 'shopify'
+      ? `<span class="tag-existing">En Shopify</span>`
+      : isNew
+        ? `<span class="tag-new">Nuevo</span>`
+        : `<span class="tag-existing">En Shopify</span>`;
     const eanEl  = ean ? `<span style="font-size:11px;color:var(--muted);font-family:monospace">${escHtml(ean)}</span>` : `<span style="color:#444">—</span>`;
     const stockEl = p.inStock
       ? `<span style="color:var(--green);font-size:11px">✓ ${p.stock > 1 ? p.stock + ' uds' : 'Stock'}</span>`
