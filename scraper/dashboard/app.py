@@ -395,6 +395,7 @@ def get_shopify_products():
 @app.route("/api/products/shopify-all", methods=["GET"])
 def get_all_shopify_products():
     """Devuelve todos los productos de Shopify normalizados para la tabla."""
+    import time as _t
     env = read_env()
     if not env.get("SHOPIFY_STORE") or not env.get("SHOPIFY_TOKEN"):
         return jsonify({"error": "No configurado"}), 400
@@ -402,14 +403,26 @@ def get_all_shopify_products():
         _apply_env_to_uploader(env)
         store = env["SHOPIFY_STORE"]
         token = env["SHOPIFY_TOKEN"]
-        headers = {"X-Shopify-Access-Token": token, "Content-Type": "application/json"}
+        hdrs = {"X-Shopify-Access-Token": token, "Content-Type": "application/json"}
         base = f"https://{store}/admin/api/2024-01"
         products = []
         url = f"{base}/products.json"
         params = {"limit": 250, "fields": "id,title,handle,images,variants,product_type,tags,status"}
+
+        def shopify_get(u, p=None):
+            """GET con reintentos ante 429."""
+            for attempt in range(6):
+                r = requests.get(u, headers=hdrs, params=p, timeout=30)
+                if r.status_code == 429:
+                    retry_after = float(r.headers.get("Retry-After", 2 ** attempt))
+                    _t.sleep(retry_after)
+                    continue
+                r.raise_for_status()
+                return r
+            raise Exception("Demasiados reintentos (429) en Shopify")
+
         while url:
-            r = requests.get(url, headers=headers, params=params, timeout=30)
-            r.raise_for_status()
+            r = shopify_get(url, params)
             prods = r.json().get("products", [])
             for p in prods:
                 variant   = p["variants"][0] if p.get("variants") else {}
@@ -442,8 +455,8 @@ def get_all_shopify_products():
                     break
             url = next_url
             params = {}
-            if prods:
-                import time as _t; _t.sleep(0.2)
+            # Respetar el bucket de Shopify: ~2 req/s → 0.6s entre páginas
+            _t.sleep(0.6)
         return jsonify({"products": products, "total": len(products)})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
