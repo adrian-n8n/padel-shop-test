@@ -41,14 +41,35 @@ uploader_mod = _load("uploader", SCRAPER_DIR / "shopify_uploader.py")
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 CORS(app)
 
-ENV_FILE     = SCRAPER_DIR / ".env"
-SCRAPED_JSON = SCRAPER_DIR / "scraped_products.json"
+ENV_FILE          = SCRAPER_DIR / ".env"
+SCRAPED_JSON      = SCRAPER_DIR / "scraped_products.json"
+SHOPIFY_CACHE_JSON = SCRAPER_DIR / "shopify_products_cache.json"
 
 # Colas para streaming de logs
 _scrape_queue:  queue.Queue = queue.Queue()
 _upload_queue:  queue.Queue = queue.Queue()
 _scrape_running = threading.Event()
 _upload_running = threading.Event()
+
+# ── Caché Shopify ─────────────────────────────────────────────────────────────
+def _save_shopify_cache(products: list):
+    try:
+        SHOPIFY_CACHE_JSON.write_text(
+            json.dumps({"products": products, "total": len(products),
+                        "cached_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())},
+                       ensure_ascii=False, indent=2),
+            encoding="utf-8"
+        )
+    except Exception as e:
+        print(f"[cache] no se pudo guardar: {e}")
+
+def _load_shopify_cache() -> Optional[dict]:
+    try:
+        if SHOPIFY_CACHE_JSON.exists():
+            return json.loads(SHOPIFY_CACHE_JSON.read_text(encoding="utf-8"))
+    except Exception:
+        pass
+    return None
 
 # ── Config ────────────────────────────────────────────────────────────────────
 def read_env() -> dict:
@@ -394,8 +415,17 @@ def get_shopify_products():
 
 @app.route("/api/products/shopify-all", methods=["GET"])
 def get_all_shopify_products():
-    """Devuelve todos los productos de Shopify normalizados para la tabla."""
+    """Devuelve todos los productos de Shopify normalizados. Usa caché en disco."""
     import time as _t
+    force = request.args.get("refresh", "0") == "1"
+
+    # Servir desde caché si existe y no se fuerza recarga
+    if not force:
+        cached = _load_shopify_cache()
+        if cached:
+            cached["from_cache"] = True
+            return jsonify(cached)
+
     env = read_env()
     if not env.get("SHOPIFY_STORE") or not env.get("SHOPIFY_TOKEN"):
         return jsonify({"error": "No configurado"}), 400
@@ -458,7 +488,8 @@ def get_all_shopify_products():
             params = {}
             # Respetar el bucket de Shopify: ~2 req/s → 0.6s entre páginas
             _t.sleep(0.6)
-        return jsonify({"products": products, "total": len(products)})
+        _save_shopify_cache(products)
+        return jsonify({"products": products, "total": len(products), "from_cache": False})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

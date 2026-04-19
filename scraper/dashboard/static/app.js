@@ -124,24 +124,25 @@ async function loadShopifyHandles() {
 }
 
 /* ── Cargar todos los productos de Shopify ──────────────────────────────── */
-async function loadAllShopifyProducts() {
+async function loadAllShopifyProducts(force = false) {
   const btn = $("load-shopify-all-btn");
   btn.disabled = true;
   btn.textContent = "Cargando…";
   setMsg("load-shopify-msg", "", "");
-  log("Cargando todos los productos de Shopify…", "info");
+  log(force ? "Recargando productos desde Shopify…" : "Cargando productos de Shopify…", "info");
   try {
-    const data = await fetch("/api/products/shopify-all").then(r => r.json());
+    const url = force ? "/api/products/shopify-all?refresh=1" : "/api/products/shopify-all";
+    const data = await fetch(url).then(r => r.json());
     if (data.error) { log("Error: " + data.error, "err"); setMsg("load-shopify-msg", data.error, "err"); return; }
-    // Guardar handles/barcodes del resultado
     state.shopifyHandles  = new Set(data.products.map(p => p.slug));
     state.shopifyBarcodes = {};
     data.products.forEach(p => { if (p.ean) state.shopifyBarcodes[p.slug] = p.ean; });
     state.products = data.products;
     $('scrape-badge').textContent = `${data.total} productos (Shopify)`;
     $('scrape-badge').className = 'badge badge-green';
-    log(`Shopify: ${data.total} productos cargados`, "ok");
-    setMsg("load-shopify-msg", `✓ ${data.total} productos`, "ok");
+    const src = data.from_cache ? ` · desde caché` : ` · actualizado`;
+    log(`Shopify: ${data.total} productos cargados${src}`, "ok");
+    setMsg("load-shopify-msg", `✓ ${data.total} productos${src}`, "ok");
     renderTable(state.products);
     updateStats();
   } catch(e) {
@@ -153,7 +154,8 @@ async function loadAllShopifyProducts() {
   }
 }
 
-$("load-shopify-all-btn").addEventListener("click", loadAllShopifyProducts);
+$("load-shopify-all-btn").addEventListener("click", () => loadAllShopifyProducts(false));
+$("refresh-shopify-cache-btn").addEventListener("click", () => loadAllShopifyProducts(true));
 
 /* ── Scraping ─────────────────────────────────────────────────────────────── */
 $('scrape-btn').addEventListener('click', async () => {
