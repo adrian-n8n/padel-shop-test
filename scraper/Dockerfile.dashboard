@@ -5,7 +5,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends gcc && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+COPY scraper/requirements.txt .
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # ── Runtime stage ─────────────────────────────────────────────────────
@@ -14,7 +14,8 @@ FROM python:3.12-slim
 WORKDIR /app
 
 COPY --from=builder /install /usr/local
-COPY . .
+COPY scraper/ ./scraper/
+COPY shopify-miravia-sync/ ./shopify-miravia-sync/
 
 # Usuario no-root por seguridad
 RUN useradd -m appuser && chown -R appuser /app
@@ -24,11 +25,6 @@ USER appuser
 ENV PORT=5050
 EXPOSE $PORT
 
-# gunicorn + gevent:
-# -w 1: un worker (gevent gestiona concurrencia con greenlets)
-# -k gevent: worker async, esencial para endpoints /stream (SSE)
-# --timeout 120: para operaciones largas de scraping/upload
-# --worker-connections 100: conexiones simultáneas
 CMD gunicorn \
     --worker-class gevent \
     --workers 1 \
@@ -38,4 +34,5 @@ CMD gunicorn \
     --access-logfile - \
     --error-logfile - \
     --log-level info \
+    --chdir /app/scraper \
     dashboard.app:app
