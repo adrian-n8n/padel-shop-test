@@ -19,3 +19,7 @@ public/images/products/**/*.webp
 # Misc
 .DS_Store
 *.log
+
+# Secrets
+shopify-miravia-sync/.env
+scraper/.env
