@@ -5,34 +5,42 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends gcc && rm -rf /var/lib/apt/lists/*
 
-COPY scraper/requirements.txt .
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+# Instalar dependencias de ambos módulos (scraper + miravia-sync)
+COPY scraper/requirements.txt         ./scraper-req.txt
+COPY shopify-miravia-sync/requirements.txt ./miravia-req.txt
+RUN pip install --no-cache-dir --prefix=/install -r scraper-req.txt && \
+    pip install --no-cache-dir --prefix=/install -r miravia-req.txt
 
 # ── Runtime stage ─────────────────────────────────────────────────────
 FROM python:3.12-slim
 
+# Nginx + Supervisor para multi-proceso en un solo contenedor
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        nginx supervisor && \
+    rm -rf /var/lib/apt/lists/* && \
+    # Nginx logs a stdout/stderr
+    ln -sf /dev/stdout /var/log/nginx/access.log && \
+    ln -sf /dev/stderr /var/log/nginx/error.log
+
 WORKDIR /app
 
 COPY --from=builder /install /usr/local
-COPY scraper/ ./scraper/
+
+# Código fuente de los tres módulos
+COPY scraper/             ./scraper/
 COPY shopify-miravia-sync/ ./shopify-miravia-sync/
+COPY portal/              ./portal/
 
-# Usuario no-root por seguridad
-RUN useradd -m appuser && chown -R appuser /app
-USER appuser
+# Configuración nginx (plantilla con ${PORT})
+COPY nginx.conf /etc/nginx/nginx.conf.template
 
-# Railway inyecta PORT; por defecto 5050 en local
-ENV PORT=5050
+# Supervisord config + script de arranque
+COPY scraper/supervisord.conf /etc/supervisor/conf.d/apps.conf
+COPY scraper/start.sh         /start.sh
+RUN chmod +x /start.sh
+
+# Railway inyecta PORT; por defecto 8080 en local
+ENV PORT=8080
 EXPOSE $PORT
 
-CMD gunicorn \
-    --worker-class gevent \
-    --workers 1 \
-    --worker-connections 100 \
-    --timeout 120 \
-    --bind 0.0.0.0:$PORT \
-    --access-logfile - \
-    --error-logfile - \
-    --log-level info \
-    --chdir /app/scraper \
-    dashboard.app:app
+CMD ["/start.sh"]

@@ -437,10 +437,10 @@ def get_all_shopify_products():
         base = f"https://{store}/admin/api/2024-01"
         products = []
         url = f"{base}/products.json"
-        params = {"limit": 250, "fields": "id,title,handle,images,variants,product_type,tags,status"}
+        params = {"limit": 250, "fields": "id,title,handle,vendor,images,variants,product_type,tags,status"}
 
         def shopify_get(u, p=None):
-            """GET con reintentos ante 429."""
+            """GET con reintentos ante 429 y delay adaptativo según el bucket."""
             for attempt in range(6):
                 r = requests.get(u, headers=hdrs, params=p, timeout=30)
                 if r.status_code == 429:
@@ -448,6 +448,18 @@ def get_all_shopify_products():
                     _t.sleep(retry_after)
                     continue
                 r.raise_for_status()
+                # Delay adaptativo basándose en X-Shopify-Shop-Api-Call-Limit (ej: "38/40")
+                call_limit = r.headers.get("X-Shopify-Shop-Api-Call-Limit", "")
+                if call_limit:
+                    try:
+                        used, max_calls = map(int, call_limit.split("/"))
+                        if used >= max_calls - 2:
+                            _t.sleep(0.5)   # casi lleno: frenar
+                        elif used > max_calls * 0.6:
+                            _t.sleep(0.15)  # uso medio: pausa corta
+                        # Si hay margen amplio no esperamos
+                    except ValueError:
+                        _t.sleep(0.2)
                 return r
             raise Exception("Demasiados reintentos (429) en Shopify")
 
@@ -465,7 +477,7 @@ def get_all_shopify_products():
                     "slug":          p["handle"],
                     "shopifyId":     str(p["id"]),
                     "name":          p["title"],
-                    "brand":         "",
+                    "brand":         p.get("vendor", ""),
                     "category":      p.get("product_type", ""),
                     "price":         price if price else None,
                     "originalPrice": None,
@@ -486,8 +498,6 @@ def get_all_shopify_products():
                     break
             url = next_url
             params = {}
-            # Respetar el bucket de Shopify: ~2 req/s → 0.6s entre páginas
-            _t.sleep(0.6)
         _save_shopify_cache(products)
         return jsonify({"products": products, "total": len(products), "from_cache": False})
     except Exception as e:
