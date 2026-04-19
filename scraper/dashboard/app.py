@@ -433,6 +433,7 @@ def get_all_shopify_products():
                 all_imgs  = [i["src"] for i in p.get("images", [])]
                 products.append({
                     "slug":          p["handle"],
+                    "shopifyId":     str(p["id"]),
                     "name":          p["title"],
                     "brand":         "",
                     "category":      p.get("product_type", ""),

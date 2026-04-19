@@ -369,9 +369,11 @@ function updateUploadButtons() {
   const hasProducts = state.products.length > 0;
   const newCount    = state.products.filter(p => !state.shopifyHandles.has(p.slug)).length;
 
-  $("upload-selected-btn").disabled = state.selected.size === 0;
-  $("upload-all-btn").disabled      = newCount === 0;
-  $("sel-count").textContent        = state.selected.size;
+  $('upload-selected-btn').disabled = state.selected.size === 0;
+  $('upload-all-btn').disabled      = newCount === 0;
+  $('sel-count').textContent        = state.selected.size;
+  $('img-main-sel-count').textContent = state.selected.size;
+  $('update-images-selected-btn').disabled = state.selected.size === 0;
   updateSyncButtons();
 }
 
@@ -401,7 +403,59 @@ $("check-all").addEventListener("change", function() {
   renderTable(state.products);
 });
 
-/* ── Upload ───────────────────────────────────────────────────────────────── */
+/* ── Actualizar imágenes desde tabla principal ────────────────────────── */
+function startMainImageScrape() {
+  const selectedProducts = state.products
+    .filter(p => state.selected.has(p.slug))
+    .map(p => ({
+      id:     p.shopifyId || p.slug,  // si viene de shopify-all tiene id real
+      handle: p.slug,
+      title:  p.name,
+    }));
+
+  if (!selectedProducts.length) return;
+
+  const btn = $('update-images-selected-btn');
+  btn.disabled = true;
+  $('imgmain-progress').classList.remove('hidden');
+  $('imgmain-bar').style.width = '0%';
+  $('imgmain-progress-label').textContent = 'Iniciando…';
+  log(`Buscando imágenes para ${selectedProducts.length} productos…`, 'info');
+
+  fetch('/api/scrape/images-from-shopify', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ products: selectedProducts }),
+  }).then(() => {
+    const evts = new EventSource('/api/scrape/images-from-shopify/stream');
+    evts.onmessage = ev => {
+      const msg = JSON.parse(ev.data);
+      if (msg.type === 'ping') return;
+      if (msg.type === 'log') { log(msg.msg); return; }
+      if (msg.type === 'progress') {
+        const pct = Math.round((msg.current / msg.total) * 100);
+        $('imgmain-bar').style.width = pct + '%';
+        $('imgmain-progress-label').textContent = `${msg.current}/${msg.total} · ${escHtml(msg.name)}`;
+      }
+      if (msg.type === 'done') {
+        evts.close();
+        $('imgmain-bar').style.width = '100%';
+        $('imgmain-progress-label').textContent = `✓ ${msg.updated} actualizados`;
+        log(`Imágenes actualizadas: ${msg.updated} ok · ${msg.skipped} sin resultados · ${msg.errors} errores`, 'ok');
+        btn.disabled = state.selected.size === 0;
+      }
+      if (msg.type === 'error') {
+        evts.close();
+        log('Error imágenes: ' + msg.msg, 'err');
+        btn.disabled = false;
+      }
+    };
+    evts.onerror = () => { evts.close(); btn.disabled = false; };
+  }).catch(e => { log('Error: ' + e.message, 'err'); btn.disabled = false; });
+}
+
+$('update-images-selected-btn').addEventListener('click', startMainImageScrape);
+
+/* ── Upload ─────────────────────────────────────────────────────────────── */
 function startUpload(slugs) {
   const collection      = $("collection-input").value.trim();
   const updateExisting  = $("update-existing").checked;
