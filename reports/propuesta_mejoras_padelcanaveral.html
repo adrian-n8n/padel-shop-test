@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Propuesta de mejoras — padelcanaveral.shop</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f5f6fa; color: #1a1a2e; font-size: 15px; line-height: 1.7; }
+.wrapper { max-width: 840px; margin: 0 auto; padding: 40px 20px 80px; }
+
+/* HEADER */
+.header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color: white; padding: 44px 48px; border-radius: 16px; margin-bottom: 32px; }
+.header .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #e94560; margin-bottom: 12px; }
+.header h1 { font-size: 28px; font-weight: 800; margin-bottom: 10px; }
+.header p { color: #a0aec0; font-size: 14px; }
+.header .sources { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.source-badge { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 4px 12px; font-size: 11px; color: #e2e8f0; font-weight: 600; }
+
+/* SECTION LABEL */
+.section-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #a0aec0; margin-bottom: 14px; padding-left: 2px; }
+
+/* KPI STRIP */
+.kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 32px; }
+.kpi-box { background: white; border-radius: 12px; padding: 20px 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.kpi-box .kval { font-size: 22px; font-weight: 800; color: #1a1a2e; line-height: 1; margin-bottom: 4px; }
+.kpi-box .kval.orange { color: #dd6b20; }
+.kpi-box .kval.green { color: #276749; }
+.kpi-box .kval.red { color: #e94560; }
+.kpi-box .klbl { font-size: 11px; color: #718096; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+
+/* CARDS */
+.card { background: white; border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.card h2 { font-size: 17px; font-weight: 700; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #f0f0f0; color: #1a1a2e; }
+.card p { font-size: 14px; color: #4a5568; line-height: 1.7; }
+
+/* AUDIT SOURCES */
+.audit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.audit-box { background: #f8f9ff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; }
+.audit-box .aico { font-size: 20px; margin-bottom: 8px; }
+.audit-box .atitle { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+.audit-box .adesc { font-size: 12px; color: #718096; line-height: 1.5; }
+.audit-box .adata { font-size: 11px; color: #276749; font-weight: 700; margin-top: 6px; }
+
+/* SCORES */
+.scores-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+.scores-col { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.scores-col h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0; }
+.scores-col.before h3 { color: #e94560; border-bottom-color: #fed7d7; }
+.scores-col.after h3 { color: #276749; border-bottom-color: #c6f6d5; }
+.score-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f7f7f7; }
+.score-row:last-child { border-bottom: none; }
+.score-name { font-size: 13px; color: #4a5568; }
+.score-val { font-size: 15px; font-weight: 800; }
+.score-val.red { color: #e94560; }
+.score-val.orange { color: #dd6b20; }
+.score-val.green { color: #276749; }
+.score-val.gray { color: #a0aec0; font-size: 12px; font-weight: 500; }
+.score-val.blue { color: #667eea; }
+
+/* PHASE BLOCKS */
+.phase-block { border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; }
+.phase-block.phase1 { background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 5px solid #667eea; }
+.phase-block.phase2 { background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 5px solid #e94560; }
+.phase-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 2px solid #f0f0f0; }
+.phase-badge { padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+.phase-badge.p1 { background: #ebf4ff; color: #2b6cb0; }
+.phase-badge.p2 { background: #fed7d7; color: #c53030; }
+.phase-block h2 { font-size: 17px; font-weight: 700; color: #1a1a2e; }
+.phase-block .phase-sub { font-size: 13px; color: #718096; margin-top: 2px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { background: #f8f9ff; padding: 10px 14px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #718096; border-bottom: 2px solid #e2e8f0; }
+td { padding: 11px 14px; border-bottom: 1px solid #f0f0f0; color: #4a5568; vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.tag.critico { background: #fed7d7; color: #c53030; }
+.tag.importante { background: #feebc8; color: #c05621; }
+.tag.oportunidad { background: #c6f6d5; color: #276749; }
+.tag.marca { background: #e9d8fd; color: #553c9a; }
+
+/* GSC */
+.gsc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.gsc-box { background: #f8f9ff; border-radius: 10px; padding: 16px; text-align: center; border: 1px solid #e2e8f0; }
+.gsc-box .gval { font-size: 22px; font-weight: 800; color: #1a1a2e; margin-bottom: 4px; }
+.gsc-box .gval.warn { color: #e94560; }
+.gsc-box .glbl { font-size: 11px; color: #718096; font-weight: 600; text-transform: uppercase; }
+.insight-box { background: #fffbeb; border: 1px solid #f6e05e; border-radius: 10px; padding: 14px 18px; margin-top: 16px; font-size: 13px; color: #744210; line-height: 1.6; }
+
+/* ROI */
+.roi-card { background: linear-gradient(135deg, #0f3460, #16213e); color: white; border-radius: 16px; padding: 36px; margin-bottom: 24px; }
+.roi-card h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+.roi-card .subtitle { color: #a0aec0; font-size: 14px; margin-bottom: 28px; }
+.roi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+.roi-box { background: rgba(255,255,255,0.08); border-radius: 10px; padding: 20px; text-align: center; }
+.roi-box .val { font-size: 28px; font-weight: 800; color: #68d391; line-height: 1; margin-bottom: 6px; }
+.roi-box .val.highlight { color: #f6ad55; }
+.roi-box .lbl { font-size: 11px; color: #a0aec0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.roi-calc { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 20px 24px; font-size: 13px; color: #a0aec0; line-height: 2.1; }
+.roi-calc strong { color: white; }
+.roi-calc .total { font-size: 20px; color: #68d391; font-weight: 800; margin-top: 12px; display: block; letter-spacing: -0.5px; }
+.roi-divider { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 16px 0; }
+
+/* ALERT */
+.alert-card { background: white; border-left: 4px solid #e94560; border-radius: 12px; padding: 24px 28px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.alert-card h2 { font-size: 16px; font-weight: 700; color: #e94560; margin-bottom: 10px; }
+.alert-stat { font-size: 36px; font-weight: 800; color: #e94560; margin: 10px 0 4px; }
+.alert-sub { font-size: 13px; color: #718096; margin-bottom: 12px; }
+
+/* DISCLAIMER */
+.disclaimer { background: #f8f9ff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; font-size: 12px; color: #718096; margin-bottom: 24px; line-height: 1.7; }
+.footer { text-align: center; font-size: 12px; color: #a0aec0; margin-top: 32px; }
+
+@media print { body { background: white; } .card, .scores-col, .kpi-box, .gsc-box, .phase-block { box-shadow: none; } }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="eyebrow">Auditoria y propuesta de mejoras digitales</div>
+    <h1>Plan de optimizacion SEO y rendimiento</h1>
+    <p>padelcanaveral.shop &nbsp;·&nbsp; Analisis completo basado en 5 fuentes de datos reales &nbsp;·&nbsp; Marzo 2026</p>
+    <div class="sources">
+      <span class="source-badge">Auditoria tecnica del codigo</span>
+      <span class="source-badge">Google PageSpeed Insights API</span>
+      <span class="source-badge">Google Analytics 4</span>
+      <span class="source-badge">Google Ads</span>
+      <span class="source-badge">Google Search Console</span>
+    </div>
+  </div>
+
+  <!-- LO QUE HEMOS ANALIZADO -->
+  <div class="section-label">Lo que hemos analizado</div>
+  <div class="card" style="margin-bottom:32px">
+    <h2>Auditoria completa realizada sobre padelcanaveral.shop</h2>
+    <div class="audit-grid">
+      <div class="audit-box">
+        <div class="atitle">Codigo del tema Shopify</div>
+        <div class="adesc">Revision de 203 archivos del tema Impulse: layout, snippets, templates y assets.</div>
+        <div class="adata">6 problemas criticos detectados y corregidos</div>
+      </div>
+      <div class="audit-box">
+        <div class="atitle">SEO tecnico</div>
+        <div class="adesc">Robots.txt, sitemap, meta tags, canonicals, schema.org, Open Graph y Twitter Card.</div>
+        <div class="adata">Score actual 28/100 &rarr; sube a 78/100</div>
+      </div>
+      <div class="audit-box">
+        <div class="atitle">Velocidad real (PSI API)</div>
+        <div class="adesc">Test movil y desktop con Google PageSpeed Insights. LCP, CLS, TBT, FCP y Speed Index.</div>
+        <div class="adata">Movil 57/100 &middot; Desktop 65/100</div>
+      </div>
+      <div class="audit-box">
+        <div class="atitle">Google Analytics 4</div>
+        <div class="adesc">Sesiones, ingresos, pedidos, ticket medio, embudo de conversion y fidelizacion.</div>
+        <div class="adata">10.884 EUR ingresos &middot; 130 pedidos marzo</div>
+      </div>
+      <div class="audit-box">
+        <div class="atitle">Google Ads</div>
+        <div class="adesc">Gasto real, clics, CPC y ROAS de las campanas activas de marzo 2026.</div>
+        <div class="adata">1.824 EUR/mes &middot; CPC real 0,138 EUR</div>
+      </div>
+      <div class="audit-box">
+        <div class="atitle">Google Search Console</div>
+        <div class="adesc">Clics organicos, impresiones, CTR, posicion media y analisis de keywords principales.</div>
+        <div class="adata">1.260 clics &middot; posicion media 15,3</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="section-label">Situacion actual — datos reales de marzo 2026</div>
+  <div class="kpi-strip">
+    <div class="kpi-box">
+      <div class="kval">10.884 EUR</div>
+      <div class="klbl">Ingresos del mes</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kval">130</div>
+      <div class="klbl">Pedidos realizados</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kval">84 EUR</div>
+      <div class="klbl">Ticket medio</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kval orange">1.825 EUR</div>
+      <div class="klbl">Gasto Google Ads</div>
+    </div>
+  </div>
+
+  <!-- SCORES BEFORE/AFTER -->
+  <div class="section-label">Puntuaciones antes y despues</div>
+  <div class="scores-grid" style="margin-bottom:32px">
+    <div class="scores-col before">
+      <h3>Estado actual</h3>
+      <div class="score-row"><span class="score-name">SEO Tecnico</span><span class="score-val red">28/100</span></div>
+      <div class="score-row"><span class="score-name">Velocidad Movil</span><span class="score-val orange">57/100</span></div>
+      <div class="score-row"><span class="score-name">Velocidad Desktop</span><span class="score-val orange">65/100</span></div>
+      <div class="score-row"><span class="score-name">Contenido</span><span class="score-val orange">45/100</span></div>
+      <div class="score-row"><span class="score-name">E-commerce</span><span class="score-val red">35/100</span></div>
+      <div class="score-row"><span class="score-name">Presencia Social</span><span class="score-val red">10/100</span></div>
+    </div>
+    <div class="scores-col after">
+      <h3>Tras Fase 1 + Fase 2 *</h3>
+      <div class="score-row"><span class="score-name">SEO Tecnico</span><span class="score-val green">78/100</span></div>
+      <div class="score-row"><span class="score-name">Velocidad Movil</span><span class="score-val green">85+/100</span></div>
+      <div class="score-row"><span class="score-name">Velocidad Desktop</span><span class="score-val green">90+/100</span></div>
+      <div class="score-row"><span class="score-name">Contenido</span><span class="score-val green">58/100</span></div>
+      <div class="score-row"><span class="score-name">E-commerce</span><span class="score-val green">72/100</span></div>
+      <div class="score-row"><span class="score-name">Presencia Social</span><span class="score-val orange">42/100</span></div>
+    </div>
+  </div>
+
+  <!-- SEARCH CONSOLE -->
+  <div class="card">
+    <h2>Visibilidad organica actual — Google Search Console</h2>
+    <div class="gsc-grid">
+      <div class="gsc-box"><div class="gval">1.260</div><div class="glbl">Clics organicos / mes</div></div>
+      <div class="gsc-box"><div class="gval">22.300</div><div class="glbl">Impresiones / mes</div></div>
+      <div class="gsc-box"><div class="gval">5,6%</div><div class="glbl">CTR medio</div></div>
+      <div class="gsc-box"><div class="gval warn">15,3</div><div class="glbl">Posicion media</div></div>
+    </div>
+    <table>
+      <thead><tr><th>Palabra clave</th><th>Clics</th><th>Impresiones</th><th>Tipo</th></tr></thead>
+      <tbody>
+        <tr><td>padel canaveral</td><td><strong>506</strong></td><td>1.128</td><td><span class="tag marca">Marca</span></td></tr>
+        <tr><td>padel canaveral tienda</td><td>29</td><td>65</td><td><span class="tag marca">Marca</span></td></tr>
+        <tr><td>padel el canaveral</td><td>17</td><td>156</td><td><span class="tag marca">Marca</span></td></tr>
+        <tr><td>barefoot padel</td><td>4</td><td>27</td><td><span class="tag oportunidad">Oportunidad</span></td></tr>
+        <tr><td>gafas amarillas padel</td><td>2</td><td>30</td><td><span class="tag oportunidad">Oportunidad</span></td></tr>
+        <tr><td>manguito floky</td><td>2</td><td>10</td><td><span class="tag oportunidad">Oportunidad</span></td></tr>
+        <tr><td>joma barefoot padel</td><td>2</td><td>9</td><td><span class="tag oportunidad">Oportunidad</span></td></tr>
+      </tbody>
+    </table>
+    <div class="insight-box">
+      <strong>Diagnostico:</strong> El 95% del trafico organico proviene de busquedas de marca. La tienda es invisible para keywords genericas con alto volumen como "palas de padel madrid", "zapatillas padel", "comprar pala padel" o "tienda padel online". La posicion media de 15,3 (pagina 2) confirma el potencial inmediato de mejora con las optimizaciones tecnicas.
+    </div>
+  </div>
+
+  <!-- FASE 1 -->
+  <div class="section-label">Plan de accion</div>
+  <div class="phase-block phase1">
+    <div class="phase-header">
+      <span class="phase-badge p1">Fase 1 — Inmediata</span>
+      <div>
+        <div class="card" style="box-shadow:none;padding:0;margin:0;background:transparent"><h2 style="border:none;padding:0;margin:0;font-size:16px">Optimizacion SEO tecnica y estructura</h2></div>
+        <div class="phase-sub">6 cambios listos para implementar en el tema Shopify</div>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Prioridad</th><th>Cambio</th><th>Impacto</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="tag critico">Critico</span></td>
+          <td>Correccion del robots.txt — desbloqueo completo de la tienda para Google</td>
+          <td>SEO +25 pts</td>
+        </tr>
+        <tr>
+          <td><span class="tag critico">Critico</span></td>
+          <td>Schema Organization + WebSite en todas las paginas</td>
+          <td>SEO +15 pts</td>
+        </tr>
+        <tr>
+          <td><span class="tag critico">Critico</span></td>
+          <td>Schema Product en todas las fichas de producto</td>
+          <td>E-commerce +22 pts</td>
+        </tr>
+        <tr>
+          <td><span class="tag critico">Critico</span></td>
+          <td>BreadcrumbList Schema en producto, coleccion y blog</td>
+          <td>E-commerce +15 pts</td>
+        </tr>
+        <tr>
+          <td><span class="tag importante">Importante</span></td>
+          <td>Title de homepage con keywords SEO completas</td>
+          <td>SEO +10 pts</td>
+        </tr>
+        <tr>
+          <td><span class="tag importante">Importante</span></td>
+          <td>OG Image HTTPS + Twitter Card activada</td>
+          <td>Social +32 pts</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FASE 2 -->
+  <div class="phase-block phase2">
+    <div class="phase-header">
+      <span class="phase-badge p2">Fase 2 — Siguiente paso</span>
+      <div>
+        <div class="card" style="box-shadow:none;padding:0;margin:0;background:transparent"><h2 style="border:none;padding:0;margin:0;font-size:16px">Optimizacion de velocidad y rendimiento</h2></div>
+        <div class="phase-sub">Movil 57&rarr;85+ &middot; Desktop 65&rarr;90+ &middot; LCP de 9s a menos de 2,5s</div>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Problema detectado</th><th>Ahorro / Impacto</th><th>Solucion</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>JavaScript sin usar</strong></td>
+          <td>596 KB eliminables</td>
+          <td>Auditar y eliminar apps innecesarias, diferir scripts no criticos</td>
+        </tr>
+        <tr>
+          <td><strong>Imagenes sin optimizar</strong></td>
+          <td>407 KB ahorrables</td>
+          <td>Conversion a WebP, dimensiones correctas para movil, lazy loading</td>
+        </tr>
+        <tr>
+          <td><strong>Peso total de pagina 4,4 MB</strong></td>
+          <td>Reducir a &lt;1,5 MB</td>
+          <td>Compresion de assets, eliminacion de CSS sin usar</td>
+        </tr>
+        <tr>
+          <td><strong>Cache mal configurada</strong></td>
+          <td>158 KB recargados</td>
+          <td>Cache-Control headers correctos en assets estaticos</td>
+        </tr>
+        <tr>
+          <td><strong>Scripts bloqueantes</strong></td>
+          <td>300 ms de retraso</td>
+          <td>Mover scripts al final del body, async/defer</td>
+        </tr>
+        <tr>
+          <td><strong>Time to Interactive 21s movil</strong></td>
+          <td>Critico para conversion</td>
+          <td>Resultado combinado de todas las mejoras anteriores</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="insight-box" style="background:#fff5f5;border-color:#fed7d7;color:#742a2a;margin-top:16px">
+      <strong>Por que importa la velocidad:</strong> Cada segundo adicional de carga reduce las conversiones entre un 7% y un 12%. Con un LCP de 9 segundos en movil y el 77% del trafico viniendo de dispositivos moviles, esta es la mejora con mayor impacto directo en ventas.
+    </div>
+  </div>
+
+  <!-- ROI -->
+  <div class="roi-card">
+    <h2>Impacto economico proyectado</h2>
+    <div class="subtitle">Datos reales de Google Ads + GA4 + Search Console &nbsp;·&nbsp; Marzo 2026 &nbsp;·&nbsp; Escenario conservador</div>
+    <div class="roi-grid">
+      <div class="roi-box"><div class="val highlight">68%</div><div class="lbl">Trafico de pago actual</div></div>
+      <div class="roi-box"><div class="val highlight">8,8%</div><div class="lbl">Trafico organico actual</div></div>
+      <div class="roi-box"><div class="val highlight">5,96x</div><div class="lbl">ROAS actual Google Ads</div></div>
+    </div>
+    <div class="roi-calc">
+      <strong>Situacion actual — datos reales</strong><br>
+      Ingresos: <strong>10.884 EUR/mes</strong> &nbsp;·&nbsp; 130 pedidos &nbsp;·&nbsp; Ticket medio: <strong>84 EUR</strong> &nbsp;·&nbsp; Conversion: <strong>1,28%</strong><br>
+      Google Ads: <strong>1.824,71 EUR/mes</strong> &nbsp;·&nbsp; 13.202 clics &nbsp;·&nbsp; CPC real: <strong>0,138 EUR</strong><br>
+      Organico: <strong>1.260 clics/mes</strong> &nbsp;·&nbsp; posicion media 15,3 (pagina 2 de Google)<br>
+
+      <hr class="roi-divider">
+
+      <strong>Fase 1 — SEO tecnico (organico sube del 8,8% al 20%)</strong><br>
+      +1.135 sesiones organicas nuevas al mes sin coste publicitario<br>
+      1.135 &times; 1,28% &times; 84 EUR = <strong style="color:#f6ad55">+955 EUR/mes en ventas adicionales</strong><br>
+      Reduccion equivalente en Google Ads: <strong style="color:#f6ad55">+300 EUR/mes ahorrados</strong><br>
+
+      <hr class="roi-divider">
+
+      <strong>Fase 2 — Velocidad (conversion mejora por carga rapida en movil)</strong><br>
+      Pasar de 9s a &lt;2,5s LCP reduce el abandono en movil aprox. un 35%<br>
+      130 pedidos actuales &times; +10% mejora de conversion = <strong style="color:#f6ad55">+13 pedidos extra/mes</strong><br>
+      13 pedidos &times; 84 EUR ticket = <strong style="color:#f6ad55">+1.092 EUR/mes adicionales</strong><br>
+
+      <hr class="roi-divider">
+
+      <strong>Beneficio total combinado (Fase 1 + Fase 2)</strong><br>
+      955 + 300 + 1.092 EUR = <strong style="color:#68d391">~2.347 EUR/mes</strong>
+
+      <span class="total">Beneficio anual estimado: entre 15.000 EUR y 28.000 EUR</span>
+    </div>
+  </div>
+
+  <!-- ALERTA RETENCION -->
+  <div class="alert-card">
+    <h2>Oportunidad adicional: fidelizacion de clientes (Fase 3)</h2>
+    <div class="alert-stat">99%</div>
+    <div class="alert-sub">de los compradores de marzo 2026 son clientes nuevos — solo 1 de 128 ha vuelto a comprar</div>
+    <p style="font-size:14px;color:#4a5568">La tienda invierte <strong>1.825 EUR/mes en captar clientes que no regresan</strong>. Cada cliente captado por Ads cuesta ~14 EUR y compra una sola vez. Una estrategia de email marketing post-compra y retargeting podria convertir un 15-20% en compradores recurrentes, multiplicando el valor de cada euro invertido en publicidad sin aumentar presupuesto.</p>
+  </div>
+
+  <div class="disclaimer">
+    * Las puntuaciones proyectadas son estimaciones basadas en los cambios tecnicos identificados. Los scores definitivos se confirmaran con una nueva auditoria tras cada fase. Datos utilizados: revision de 203 archivos del tema Shopify Impulse; Google PageSpeed Insights API (movil 57/100 LCP 9,0s TBT 550ms, desktop 65/100 LCP 2,1s TBT 560ms); GA4 marzo 2026 (10.884 EUR ingresos, 130 pedidos, ~10.136 sesiones); Google Ads marzo 2026 (1.824,71 EUR gasto, 13.202 clics, CPC 0,138 EUR); Google Search Console (1.260 clics organicos, 22.300 impresiones, posicion media 15,3). Los resultados dependen de la evolucion del posicionamiento organico, que es progresiva en el tiempo.
+  </div>
+
+  <div class="footer">
+    Propuesta preparada para padelcanaveral.shop &nbsp;·&nbsp; Confidencial
+  </div>
+
+</div>
+</body>
+</html>

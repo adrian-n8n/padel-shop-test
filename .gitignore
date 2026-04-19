@@ -1,0 +1,18 @@
+# Dependencias
+node_modules/
+.next/
+
+# Entorno Python scraper
+scraper/.env
+scraper/__pycache__/
+scraper/*.pyc
+
+# Imágenes descargadas (pesadas, no en repo)
+public/images/products/**/*.jpg
+public/images/products/**/*.png
+public/images/products/**/*.webp
+!public/images/products/**/.gitkeep
+
+# Misc
+.DS_Store
+*.log

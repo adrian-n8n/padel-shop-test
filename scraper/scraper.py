@@ -175,6 +175,18 @@ def parse_card(item, category: str) -> Optional[dict]:
         elif orig_p and price and orig_p > price:
             discount = round((1 - price/orig_p)*100)
 
+        # Stock numérico visible en la card de PadelPoint
+        stock_qty = 0
+        stock_el = item.select_one(".stock span, .stock")
+        if stock_el:
+            m_stock = re.search(r"(\d+)", stock_el.get_text())
+            if m_stock:
+                stock_qty = int(m_stock.group(1))
+        # Si no hay número pero está instock, asumir al menos 1
+        in_stock = "outofstock" not in item.get("class", [])
+        if in_stock and stock_qty == 0:
+            stock_qty = 1
+
         # Obtener todas las imágenes visitando la página del producto
         all_images = fetch_all_images(url)
         if not all_images and img_url:
@@ -189,7 +201,8 @@ def parse_card(item, category: str) -> Optional[dict]:
             "discount": discount,
             "image": all_images[0] if all_images else img_url,
             "images": all_images,
-            "inStock": "outofstock" not in item.get("class",[]),
+            "inStock": in_stock,
+            "stock": stock_qty,
             "productUrl": url, "localImage": "", "localImages": [],
         }
     except Exception as e:

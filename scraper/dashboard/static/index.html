@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Padel Shop · Gestor de Productos</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20A14.5 14.5 0 0 0 12 2"/>
+          <path d="M2 12h20"/>
+        </svg>
+        <span>Padel Shop <em>Dashboard</em></span>
+      </div>
+      <div class="header-status">
+        <span id="shopify-badge" class="badge badge-grey">Shopify: no configurado</span>
+        <span id="scrape-badge"  class="badge badge-grey">Sin scraping</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+      <!-- Config -->
+      <section class="card" id="config-card">
+        <h2 class="card-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+          </svg>
+          Shopify Credenciales
+        </h2>
+        <form id="config-form">
+          <label>Store URL
+            <input type="text" id="cfg-store" placeholder="mi-tienda.myshopify.com" autocomplete="off"/>
+          </label>
+          <label>Admin Token
+            <div class="input-reveal">
+              <input type="password" id="cfg-token" placeholder="shpat_…" autocomplete="off"/>
+              <button type="button" class="btn-icon" id="toggle-token" title="Mostrar/ocultar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </label>
+          <button type="submit" class="btn btn-primary btn-full" id="save-config-btn">
+            Guardar configuración
+          </button>
+          <button type="button" class="btn btn-secondary btn-full" id="refresh-token-btn" style="margin-top:6px">
+            🔄 Renovar token automáticamente
+          </button>
+          <p id="config-msg" class="msg"></p>
+        </form>
+      </section>
+
+      <!-- Scraping -->
+      <section class="card">
+        <h2 class="card-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+          Scraping · PadelPoint
+        </h2>
+
+        <label class="label-sm">Categorías</label>
+        <div class="checkbox-group" id="cat-group">
+          <label><input type="checkbox" value="palas-2026" checked /> Palas 2026</label>
+          <label><input type="checkbox" value="zapatillas" /> Zapatillas</label>
+          <label><input type="checkbox" value="mochilas"   /> Mochilas</label>
+          <label><input type="checkbox" value="pelotas"    /> Pelotas</label>
+          <label><input type="checkbox" value="accesorios" /> Accesorios</label>
+        </div>
+
+        <label class="label-sm" for="pages-input">Páginas por categoría</label>
+        <input type="number" id="pages-input" value="3" min="1" max="20" />
+
+        <button class="btn btn-accent btn-full" id="scrape-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          Iniciar Scraping
+        </button>
+
+        <div id="scrape-progress" class="progress-wrap hidden">
+          <div class="progress-bar"><div id="scrape-bar" class="progress-fill"></div></div>
+          <p id="scrape-progress-label" class="progress-label"></p>
+        </div>
+      </section>
+
+      <!-- Upload -->
+      <section class="card" id="upload-card">
+        <h2 class="card-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+            <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+          </svg>
+          Subir a Shopify
+        </h2>
+        <label>Colección (opcional)
+          <input type="text" id="collection-input" placeholder="Palas 2026" />
+        </label>
+        <label class="check-row">
+          <input type="checkbox" id="update-existing" />
+          Actualizar existentes
+        </label>
+        <div class="upload-actions">
+          <button class="btn btn-primary" id="upload-selected-btn" disabled>
+            Subir seleccionados (<span id="sel-count">0</span>)
+          </button>
+          <button class="btn btn-outline" id="upload-all-btn" disabled>
+            Subir todos los nuevos
+          </button>
+        </div>
+        <div id="upload-progress" class="progress-wrap hidden">
+          <div class="progress-bar"><div id="upload-bar" class="progress-fill"></div></div>
+          <p id="upload-progress-label" class="progress-label"></p>
+        </div>
+        <p id="upload-msg" class="msg"></p>
+      </section>
+
+      <!-- Sync precio + stock -->
+      <section class="card" id="sync-card">
+        <h2 class="card-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/>
+            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+          </svg>
+          Sync Precio &amp; Stock
+        </h2>
+        <p class="card-desc">Actualiza <strong>solo precio y stock</strong> en productos ya existentes en Shopify. Más rápido que subir de nuevo.</p>
+        <label class="check-row">
+          <input type="checkbox" id="sync-dry-run" />
+          Dry-run (solo simular)
+        </label>
+        <div class="upload-actions">
+          <button class="btn btn-warning" id="sync-selected-btn" disabled>
+            Sync seleccionados (<span id="sync-sel-count">0</span>)
+          </button>
+          <button class="btn btn-outline" id="sync-all-btn" disabled>
+            Sync todos los existentes
+          </button>
+        </div>
+        <div id="sync-progress" class="progress-wrap hidden">
+          <div class="progress-bar"><div id="sync-bar" class="progress-fill"></div></div>
+          <p id="sync-progress-label" class="progress-label"></p>
+        </div>
+        <p id="sync-msg" class="msg"></p>
+      </section>
+
+      <!-- Importar imágenes desde PadelPoint para productos Shopify -->
+      <section class="card" id="shopify-import-card">
+        <h2 class="card-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Shopify → Imágenes PadelPoint
+        </h2>
+        <p class="card-desc">Carga productos de Shopify por tag y scrape sus imágenes desde PadelPoint.</p>
+
+        <label class="label-sm">Filtrar por tag</label>
+        <div style="display:flex;gap:0.5rem;align-items:center">
+          <select id="tag-select" style="flex:1">
+            <option value="">— cargar tags —</option>
+          </select>
+          <button class="btn btn-sm btn-outline" id="load-tags-btn" title="Recargar tags">↺</button>
+        </div>
+
+        <button class="btn btn-accent btn-full" id="load-by-tag-btn" style="margin-top:0.5rem" disabled>
+          Cargar productos con este tag
+        </button>
+
+        <div id="shopify-products-info" style="font-size:0.8rem;color:var(--muted);margin-top:0.4rem"></div>
+
+        <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
+          <button class="btn btn-primary" id="scrape-images-selected-btn" disabled>
+            Scrape imágenes seleccionados (<span id="img-sel-count">0</span>)
+          </button>
+          <button class="btn btn-outline" id="scrape-images-all-btn" disabled>
+            Todos
+          </button>
+        </div>
+
+        <div id="imgscr-progress" class="progress-wrap hidden">
+          <div class="progress-bar"><div id="imgscr-bar" class="progress-fill"></div></div>
+          <p id="imgscr-progress-label" class="progress-label"></p>
+        </div>
+        <p id="imgscr-msg" class="msg"></p>
+      </section>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="content">
+
+      <!-- Stats -->
+      <div class="stats-row" id="stats-row">
+        <div class="stat-card">
+          <span class="stat-num" id="stat-total">—</span>
+          <span class="stat-label">Productos scrapeados</span>
+        </div>
+        <div class="stat-card stat-new">
+          <span class="stat-num" id="stat-new">—</span>
+          <span class="stat-label">Nuevos (no en Shopify)</span>
+        </div>
+        <div class="stat-card stat-exist">
+          <span class="stat-num" id="stat-exist">—</span>
+          <span class="stat-label">Ya en Shopify</span>
+        </div>
+        <div class="stat-card stat-sale">
+          <span class="stat-num" id="stat-sale">—</span>
+          <span class="stat-label">Con descuento</span>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <section class="card table-card">
+        <div class="table-header">
+          <h2 class="card-title" style="margin:0">
+            Productos encontrados
+          </h2>
+          <div class="table-controls">
+            <input type="search" id="search-input" placeholder="Buscar por nombre, marca o EAN…" />
+            <select id="filter-status">
+              <option value="all">Todos</option>
+              <option value="new">Solo nuevos</option>
+              <option value="existing">Solo existentes</option>
+              <option value="sale">Con descuento</option>
+            </select>
+            <button class="btn btn-sm btn-outline" id="select-all-btn">Sel. nuevos</button>
+            <button class="btn btn-sm btn-outline" id="deselect-all-btn">Deseleccionar</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table id="products-table">
+            <thead>
+              <tr>
+                <th class="th-check"><input type="checkbox" id="check-all" title="Seleccionar todos"/></th>
+                <th>Imagen</th>
+                <th>Nombre</th>
+                <th>Marca</th>
+                <th>Categoría</th>
+                <th>EAN</th>
+                <th>Precio</th>
+                <th>Descuento</th>
+                <th>Estado</th>
+                <th>Stock</th>
+              </tr>
+            </thead>
+            <tbody id="products-tbody">
+              <tr id="empty-row">
+                <td colspan="10" class="empty-state">
+                  <div>
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.5">
+                      <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/>
+                      <line x1="12" y1="17" x2="12" y2="21"/>
+                    </svg>
+                    <p>Haz un scraping para ver los productos</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Log -->
+      <section class="card log-card">
+        <div class="log-header">
+          <h2 class="card-title" style="margin:0">Log</h2>
+          <button class="btn btn-sm btn-outline" id="clear-log-btn">Limpiar</button>
+        </div>
+        <div id="log-box"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Modal resultado upload -->
+  <div id="result-modal" class="modal hidden">
+    <div class="modal-box">
+      <h3>Resultado de la subida</h3>
+      <div id="modal-content"></div>
+      <button class="btn btn-primary" id="modal-close">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- Modal detalle producto + galería -->
+  <div id="product-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="product-modal-box">
+      <button class="product-modal-close" id="product-modal-close" title="Cerrar (Esc)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+      <!-- Galería -->
+      <div class="pm-gallery">
+        <div class="pm-main-img-wrap">
+          <button class="pm-nav pm-prev" id="pm-prev" aria-label="Anterior">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          <img id="pm-main-img" src="" alt="" />
+          <div id="pm-img-counter" class="pm-counter"></div>
+          <button class="pm-nav pm-next" id="pm-next" aria-label="Siguiente">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+        <div class="pm-thumbs" id="pm-thumbs"></div>
+      </div>
+
+      <!-- Info -->
+      <div class="pm-info">
+        <div class="pm-badges" id="pm-badges"></div>
+        <h2 id="pm-title"></h2>
+        <div class="pm-meta" id="pm-meta"></div>
+        <div class="pm-price-row" id="pm-price-row"></div>
+        <p class="pm-desc" id="pm-desc"></p>
+        <a id="pm-link" href="#" target="_blank" rel="noopener" class="btn btn-outline pm-link-btn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+          Ver en tienda original
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

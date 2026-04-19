@@ -379,7 +379,16 @@ def get_shopify_products():
         _apply_env_to_uploader(env)
         existing = _call_with_autorefresh(uploader_mod.get_existing_products_by_handle)
         handles = list(existing.keys())
-        return jsonify({"handles": handles, "total": len(handles)})
+        # Extraer barcode/EAN del primer variant de cada producto
+        barcodes = {}
+        for handle, data in existing.items():
+            if isinstance(data, dict):
+                for v in data.get("variants", []):
+                    bc = v.get("barcode") or v.get("sku") or ""
+                    if bc:
+                        barcodes[handle] = bc
+                        break
+        return jsonify({"handles": handles, "total": len(handles), "barcodes": barcodes})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

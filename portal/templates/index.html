@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Padel Shop · Panel de Herramientas</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0f1117;
+      --surface: #1a1d27;
+      --card:    #21253a;
+      --border:  #2e3350;
+      --accent:  #6c63ff;
+      --accent2: #00d4aa;
+      --text:    #e2e8f0;
+      --muted:   #8892a4;
+    }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Topbar (visible solo dentro de módulo) ─────────────────────────── */
+    #topbar {
+      display: none;
+      align-items: center;
+      gap: 0.75rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.25rem;
+      height: 46px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+    #topbar.visible { display: flex; }
+
+    #back-btn {
+      display: flex; align-items: center; gap: 0.4rem;
+      background: none; border: 1px solid var(--border);
+      color: var(--text); border-radius: 8px;
+      padding: 0.3rem 0.75rem; font-size: 0.8rem;
+      cursor: pointer; transition: border-color 0.2s;
+    }
+    #back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    #module-label {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    #module-label strong { color: var(--text); }
+
+    /* ── Selector de módulos ────────────────────────────────────────────── */
+    #selector {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2.5rem;
+      padding: 2rem;
+    }
+
+    .logo {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.5rem;
+    }
+    .logo h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.5px; }
+    .logo p  { color: var(--muted); font-size: 0.9rem; }
+
+    .modules {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      width: 100%; max-width: 720px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem 1.75rem;
+      display: flex; flex-direction: column; gap: 1rem;
+      color: var(--text); cursor: pointer;
+      transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .card:hover { border-color: var(--accent); transform: translateY(-3px);
+      box-shadow: 0 8px 32px rgba(108,99,255,0.18); }
+    .card.green:hover { border-color: var(--accent2);
+      box-shadow: 0 8px 32px rgba(0,212,170,0.18); }
+
+    .card-icon { width: 52px; height: 52px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.6rem; }
+    .card-icon.purple { background: rgba(108,99,255,0.15); }
+    .card-icon.green  { background: rgba(0,212,170,0.15); }
+
+    .card h2 { font-size: 1.15rem; font-weight: 600; }
+    .card p  { color: var(--muted); font-size: 0.88rem; line-height: 1.55; }
+
+    .card-arrow { margin-top: auto; display: flex; align-items: center;
+      gap: 0.4rem; font-size: 0.82rem; font-weight: 600; opacity: 0.7; }
+    .card:hover .card-arrow { opacity: 1; }
+
+    .badge { align-self: flex-start; padding: 0.2rem 0.65rem;
+      border-radius: 20px; font-size: 0.72rem; font-weight: 600; }
+    .badge.purple { background: rgba(108,99,255,0.2); color: #a89fff; }
+    .badge.green  { background: rgba(0,212,170,0.2);  color: #00d4aa; }
+
+    footer { color: var(--muted); font-size: 0.78rem; }
+
+    /* ── Iframe del módulo ──────────────────────────────────────────────── */
+    #module-frame {
+      display: none;
+      flex: 1;
+      width: 100%;
+      border: none;
+    }
+    #module-frame.visible { display: block; }
+  </style>
+</head>
+<body>
+
+  <!-- Topbar (solo visible cuando hay módulo abierto) -->
+  <div id="topbar">
+    <button id="back-btn" onclick="goHome()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5">
+        <path d="M19 12H5M12 5l-7 7 7 7"/>
+      </svg>
+      Volver
+    </button>
+    <span id="module-label">Cargando...</span>
+  </div>
+
+  <!-- Selector de módulos -->
+  <div id="selector">
+    <div class="logo">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none"
+           stroke="#6c63ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 2a14.5 14.5 0 0 0 0 20A14.5 14.5 0 0 0 12 2"/>
+        <path d="M2 12h20"/>
+      </svg>
+      <h1>Padel Shop · Tools</h1>
+      <p>Selecciona el módulo con el que quieres trabajar</p>
+    </div>
+
+    <div class="modules">
+      <div class="card" onclick="openModule('/scraper/', 'Scraper · Gestor de Productos')">
+        <div class="card-icon purple">🕷️</div>
+        <span class="badge purple">Scraper</span>
+        <h2>Gestor de Productos</h2>
+        <p>Extrae productos de la competencia, compara precios y súbelos directamente a tu tienda Shopify con un solo clic.</p>
+        <div class="card-arrow">
+          Abrir módulo
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="card green" onclick="openModule('/miravia/', 'Miravia Sync · Shopify → Miravia')">
+        <div class="card-icon green">🔄</div>
+        <span class="badge green">Miravia Sync</span>
+        <h2>Shopify → Miravia</h2>
+        <p>Importa productos desde Shopify a Miravia con descripciones optimizadas por IA y gestión automática de tallas y EANs.</p>
+        <div class="card-arrow">
+          Abrir módulo
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <footer>Padel el Canaveral · Internal Tools</footer>
+  </div>
+
+  <!-- Iframe del módulo seleccionado -->
+  <iframe id="module-frame" src="" allow="same-origin"></iframe>
+
+  <script>
+    const selector = document.getElementById('selector');
+    const frame    = document.getElementById('module-frame');
+    const topbar   = document.getElementById('topbar');
+    const label    = document.getElementById('module-label');
+
+    function openModule(url, name) {
+      frame.src = url;
+      selector.style.display = 'none';
+      frame.classList.add('visible');
+      topbar.classList.add('visible');
+      label.innerHTML = '<strong>' + name + '</strong>';
+      document.title  = name + ' · Padel Shop';
+      history.pushState({ url, name }, '', url);
+    }
+
+    function goHome() {
+      frame.src = '';
+      frame.classList.remove('visible');
+      topbar.classList.remove('visible');
+      selector.style.display = 'flex';
+      document.title = 'Padel Shop · Panel de Herramientas';
+      history.pushState({}, '', '/');
+    }
+
+    // Botón atrás del navegador
+    window.addEventListener('popstate', (e) => {
+      if (e.state && e.state.url) {
+        openModule(e.state.url, e.state.name);
+      } else {
+        goHome();
+      }
+    });
+  </script>
+</body>
+</html>

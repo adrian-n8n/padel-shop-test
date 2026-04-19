@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shopify → Miravia Sync</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0f1117;
+      --surface:  #1a1d27;
+      --card:     #21253a;
+      --border:   #2e3350;
+      --accent:   #6c63ff;
+      --accent2:  #00d4aa;
+      --danger:   #ff5e6c;
+      --warn:     #ffb347;
+      --text:     #e2e8f0;
+      --muted:    #8892a4;
+      --radius:   10px;
+    }
+
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── layout ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 28px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    header h1 { font-size: 1.2rem; font-weight: 700; }
+    header span { color: var(--muted); font-size: .85rem; }
+    .logo { font-size: 1.6rem; }
+
+    .layout { display: grid; grid-template-columns: 1fr 420px; gap: 0; height: calc(100vh - 57px); overflow: hidden; }
+
+    /* ── panel izquierdo (productos) ── */
+    .panel-left { overflow-y: auto; padding: 20px; border-right: 1px solid var(--border); }
+    .panel-right { overflow-y: auto; padding: 20px; background: var(--surface); }
+
+    /* ── controles superiores ── */
+    .toolbar {
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .toolbar select, .toolbar input[type=number] {
+      background: var(--card); border: 1px solid var(--border);
+      color: var(--text); padding: 7px 12px; border-radius: var(--radius);
+      font-size: .85rem; outline: none;
+    }
+    .select-all { display: flex; align-items: center; gap: 6px; font-size: .85rem; color: var(--muted); cursor: pointer; }
+    .select-all input { accent-color: var(--accent); cursor: pointer; }
+
+    /* ── botones ── */
+    .btn {
+      padding: 8px 18px; border-radius: var(--radius); border: none;
+      font-size: .85rem; font-weight: 600; cursor: pointer; transition: opacity .15s, transform .1s;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn:hover:not(:disabled) { opacity: .88; transform: translateY(-1px); }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-primary   { background: var(--accent);  color: #fff; }
+    .btn-success   { background: var(--accent2); color: #000; }
+    .btn-danger    { background: var(--danger);  color: #fff; }
+    .btn-ghost     { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-sm        { padding: 5px 12px; font-size: .78rem; }
+
+    /* ── product grid ── */
+    .products-grid { display: flex; flex-direction: column; gap: 10px; }
+
+    .product-card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      display: flex; gap: 14px; align-items: flex-start;
+      cursor: pointer; transition: border-color .15s;
+      position: relative;
+    }
+    .product-card:hover { border-color: var(--accent); }
+    .product-card.selected { border-color: var(--accent); background: #1e1a3a; }
+    .product-card.processed { border-color: var(--accent2); }
+    .product-card.imported  { border-color: #22c55e; }
+    .product-card.error     { border-color: var(--danger); }
+
+    .product-card input[type=checkbox] { accent-color: var(--accent); width: 16px; height: 16px; flex-shrink: 0; margin-top: 3px; cursor: pointer; }
+    .product-thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; flex-shrink: 0; background: var(--border); }
+    .product-thumb-placeholder { width: 60px; height: 60px; border-radius: 6px; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+
+    .product-info { flex: 1; min-width: 0; }
+    .product-title { font-weight: 600; font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .product-meta  { display: flex; gap: 10px; margin-top: 4px; flex-wrap: wrap; }
+    .product-meta span { font-size: .75rem; color: var(--muted); }
+    .product-meta .price { color: var(--accent2); font-weight: 600; }
+    .product-meta .stock { color: var(--warn); }
+
+    .badge {
+      font-size: .68rem; padding: 2px 7px; border-radius: 99px; font-weight: 600;
+      position: absolute; top: 8px; right: 8px;
+    }
+    .badge-processed { background: #1a3a33; color: var(--accent2); border: 1px solid var(--accent2); }
+    .badge-imported  { background: #1a3a1a; color: #22c55e;         border: 1px solid #22c55e; }
+    .badge-error     { background: #3a1a1a; color: var(--danger);   border: 1px solid var(--danger); }
+    .badge-loading   { background: #2a2a1a; color: var(--warn);     border: 1px solid var(--warn); }
+    .badge-warn      { background: #2a2200; color: var(--warn);     border: 1px solid var(--warn); }
+
+    /* ── panel derecho ── */
+    .section-title {
+      font-size: .75rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--muted); margin-bottom: 10px;
+    }
+
+    /* ── preview card ── */
+    .preview-empty {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 200px; color: var(--muted); gap: 10px; font-size: .9rem; text-align: center;
+    }
+    .preview-empty .icon { font-size: 2.5rem; }
+
+    .preview-product { display: flex; flex-direction: column; gap: 14px; }
+
+    .preview-header { display: flex; gap: 12px; align-items: flex-start; }
+    .preview-thumb  { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; background: var(--border); flex-shrink: 0; }
+    .preview-title  { font-weight: 700; font-size: .95rem; line-height: 1.3; }
+    .preview-sub    { font-size: .78rem; color: var(--muted); margin-top: 3px; }
+    .preview-pills  { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 5px; }
+    .pill { font-size: .68rem; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--border); color: var(--muted); }
+    .pill.hi { border-color: var(--accent2); color: var(--accent2); }
+
+    .attrs-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+    }
+    .attrs-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+    .attr-item {
+      background: var(--bg); border-radius: 8px; padding: 8px 10px;
+    }
+    .attr-label { font-size: .63rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 2px; }
+    .attr-value { font-size: .82rem; font-weight: 600; color: var(--text); word-break: break-word; }
+    .attr-value.empty { color: #3a3f58; font-style: italic; font-weight: 400; }
+    .attr-item.wide { grid-column: 1 / -1; }
+
+    /* desc tabs */
+    .desc-tabs { display: flex; gap: 2px; margin-bottom: 6px; }
+    .desc-tab  { padding: 5px 12px; border-radius: 6px; font-size: .75rem; font-weight: 600;
+                 cursor: pointer; color: var(--muted); background: none; border: 1px solid transparent; }
+    .desc-tab.active { background: var(--card); color: var(--text); border-color: var(--border); }
+
+    .desc-box {
+      background: var(--bg); border-radius: 8px; padding: 14px;
+      font-size: .8rem; line-height: 1.65; color: var(--text);
+      max-height: 260px; overflow-y: auto; border: 1px solid var(--border);
+    }
+    .desc-box strong { color: var(--accent2); }
+    .desc-box ul { padding-left: 18px; }
+    .desc-box li { margin-bottom: 4px; }
+    .desc-box h2, .desc-box h3 { font-size: .85rem; color: var(--accent); margin: 8px 0 4px; }
+
+    .import-result {
+      border-radius: 8px; padding: 12px; font-size: .82rem;
+    }
+    .import-result.ok  { background: #0e2a1e; border: 1px solid #22c55e; }
+    .import-result.dup { background: #2a2200; border: 1px solid var(--warn); }
+    .import-result.err { background: #2a0e0e; border: 1px solid var(--danger); }
+
+    /* ── log ── */
+    .log-box {
+      background: #0a0c14; border-radius: 8px; padding: 12px;
+      font-family: 'Courier New', monospace; font-size: .75rem;
+      max-height: 180px; overflow-y: auto; border: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .log-line { display: flex; gap: 8px; }
+    .log-line .ts { color: var(--muted); flex-shrink: 0; }
+    .log-line.info .msg  { color: var(--text); }
+    .log-line.ok   .msg  { color: var(--accent2); }
+    .log-line.err  .msg  { color: var(--danger); }
+    .log-line.warn .msg  { color: var(--warn); }
+
+    /* ── action bar ── */
+    .action-bar {
+      display: flex; flex-direction: column; gap: 8px;
+      background: var(--card); border-radius: var(--radius);
+      padding: 14px; border: 1px solid var(--border);
+    }
+    .action-bar .row { display: flex; gap: 8px; }
+    .action-bar .info { font-size: .78rem; color: var(--muted); }
+
+    /* ── progress bar ── */
+    .progress-wrap { background: var(--border); border-radius: 99px; height: 6px; overflow: hidden; }
+    .progress-bar  { height: 100%; background: var(--accent); transition: width .3s; border-radius: 99px; }
+
+    /* ── tabs ── */
+    .tabs { display: flex; gap: 2px; margin-bottom: 14px; background: var(--bg); border-radius: var(--radius); padding: 3px; }
+    .tab  { flex: 1; padding: 7px; text-align: center; border-radius: 8px; cursor: pointer; font-size: .82rem; font-weight: 600; color: var(--muted); transition: background .15s, color .15s; border: none; background: none; }
+    .tab.active { background: var(--card); color: var(--text); }
+
+    /* ── scrollbar ── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid transparent; border-top-color: currentColor;
+      border-radius: 50%; animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .count-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--accent); color: #fff; border-radius: 99px;
+      font-size: .7rem; font-weight: 700; min-width: 20px; height: 20px; padding: 0 5px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="logo">🏓</span>
+  <div>
+    <h1>Shopify → Miravia Sync</h1>
+    <span>Importa productos con descripciones optimizadas por IA</span>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- ══════════════ PANEL IZQUIERDO ══════════════ -->
+  <div class="panel-left">
+
+    <div class="toolbar">
+      <button class="btn btn-ghost btn-sm" id="btn-load" onclick="loadProducts()">
+        🔄 Cargar productos
+      </button>
+      <label>
+        <select id="limit-select" onchange="loadProducts()">
+          <option value="10">10 productos</option>
+          <option value="20" selected>20 productos</option>
+          <option value="50">50 productos</option>
+        </select>
+      </label>
+      <label class="select-all">
+        <input type="checkbox" id="chk-all" onchange="toggleAll(this.checked)" />
+        Seleccionar todos
+      </label>
+      <span id="selected-count" class="count-badge" style="display:none">0</span>
+    </div>
+
+    <div id="products-list" class="products-grid">
+      <div class="preview-empty">
+        <div class="icon">📦</div>
+        <span>Haz clic en "Cargar productos" para comenzar</span>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top: 14px;">
+      <button class="btn btn-ghost btn-sm" id="btn-more" style="display:none" onclick="loadMore()">
+        Cargar más →
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════ PANEL DERECHO ══════════════ -->
+  <div class="panel-right">
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('actions')" id="tab-actions">⚡ Acciones</button>
+      <button class="tab" onclick="switchTab('preview')" id="tab-preview">👁 Preview</button>
+      <button class="tab" onclick="switchTab('log')" id="tab-log">📋 Log</button>
+    </div>
+
+    <!-- ── Tab: ACCIONES ── -->
+    <div id="panel-actions">
+      <div class="action-bar">
+        <div class="section-title">1 · Extraer atributos con IA</div>
+        <p class="info">Selecciona productos y extrae especificaciones técnicas y descripción optimizada con IA.</p>
+        <div class="row" style="margin-top:6px;">
+          <button class="btn btn-primary" id="btn-extract" onclick="extractSelected()" disabled>
+            🤖 Extraer seleccionados
+          </button>
+        </div>
+        <div id="extract-progress" style="display:none; margin-top: 8px;">
+          <div class="progress-wrap"><div class="progress-bar" id="extract-bar" style="width:0%"></div></div>
+          <p class="info" style="margin-top:4px;" id="extract-status">Procesando…</p>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <div class="action-bar">
+        <div class="section-title">2 · Importar a Miravia</div>
+        <p class="info">Importa los productos procesados (descripción IA + atributos) a Miravia.</p>
+        <div class="row" style="margin-top:6px;">
+          <button class="btn btn-success" id="btn-import" onclick="importProcessed()" disabled>
+            🚀 Importar procesados
+          </button>
+        </div>
+        <div id="import-progress" style="display:none; margin-top: 8px;">
+          <div class="progress-wrap"><div class="progress-bar" id="import-bar" style="width:0%; background: var(--accent2);"></div></div>
+          <p class="info" style="margin-top:4px;" id="import-status">Importando…</p>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <div id="summary-panel" style="display:none;">
+        <div class="section-title">Resumen</div>
+        <div class="attrs-grid" id="summary-grid"></div>
+      </div>
+    </div>
+
+    <!-- ── Tab: PREVIEW ── -->
+    <div id="panel-preview" style="display:none;">
+      <div id="preview-content">
+        <div class="preview-empty">
+          <div class="icon">👆</div>
+          <span>Haz clic en cualquier producto para ver su preview</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tab: LOG ── -->
+    <div id="panel-log" style="display:none;">
+      <div class="section-title">Registro de operaciones</div>
+      <div class="log-box" id="log-box"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px;"
+        onclick="document.getElementById('log-box').innerHTML=''">Limpiar log</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const state = {
+  products:  [],
+  processed: {},  // id → resultado IA
+  imported:  {},  // id → resultado Miravia
+  nextPage:  null,
+  selected:  new Set(),
+  preview:   null, // id activo en preview
+};
+
+// ── log ───────────────────────────────────────────────────────────────────────
+function log(msg, type = 'info') {
+  const box  = document.getElementById('log-box');
+  const line = document.createElement('div');
+  line.className = `log-line ${type}`;
+  const now  = new Date().toLocaleTimeString('es-ES');
+  line.innerHTML = `<span class="ts">${now}</span><span class="msg">${msg}</span>`;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+}
+
+// ── tabs ──────────────────────────────────────────────────────────────────────
+function switchTab(name) {
+  ['actions','preview','log'].forEach(t => {
+    document.getElementById(`panel-${t}`).style.display = t === name ? 'block' : 'none';
+    document.getElementById(`tab-${t}`).classList.toggle('active', t === name);
+  });
+}
+
+// ── selected count ────────────────────────────────────────────────────────────
+function updateSelectedCount() {
+  const el = document.getElementById('selected-count');
+  const n  = state.selected.size;
+  el.textContent = n;
+  el.style.display = n > 0 ? 'inline-flex' : 'none';
+  document.getElementById('btn-extract').disabled = n === 0;
+}
+
+// ── cargar productos ──────────────────────────────────────────────────────────
+async function loadProducts() {
+  state.products = []; state.selected.clear(); state.nextPage = null;
+  document.getElementById('btn-more').style.display = 'none';
+  document.getElementById('products-list').innerHTML =
+    '<div class="preview-empty"><div class="spinner"></div><span>Cargando…</span></div>';
+  updateSelectedCount();
+  await fetchProducts();
+}
+
+async function loadMore() { await fetchProducts(state.nextPage); }
+
+async function fetchProducts(pageInfo = null) {
+  const limit = document.getElementById('limit-select').value;
+  let url = `/api/products?limit=${limit}`;
+  if (pageInfo) url += `&page_info=${pageInfo}`;
+  try {
+    const res  = await fetch(url);
+    const data = await res.json();
+    state.nextPage = data.next_page;
+    if (pageInfo) { state.products.push(...data.products); }
+    else          { state.products = data.products; document.getElementById('products-list').innerHTML = ''; }
+    renderProducts(data.products);
+    document.getElementById('btn-more').style.display = data.next_page ? 'block' : 'none';
+    log(`${data.products.length} productos cargados de Shopify`, 'ok');
+  } catch(e) { log(`Error cargando productos: ${e.message}`, 'err'); }
+}
+
+function renderProducts(products) {
+  const list = document.getElementById('products-list');
+  products.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.id        = `card-${p.id}`;
+
+    const thumb = p.image_url
+      ? `<img class="product-thumb" src="${p.image_url}" loading="lazy" onerror="this.style.display='none'" />`
+      : `<div class="product-thumb-placeholder">🏓</div>`;
+
+    card.innerHTML = `
+      <input type="checkbox" id="chk-${p.id}" onchange="onCheckChange(${p.id}, this.checked)" />
+      ${thumb}
+      <div class="product-info">
+        <div class="product-title">${p.title}</div>
+        <div class="product-meta">
+          <span>${p.vendor || '—'}</span>
+          <span class="price">${p.price} €</span>
+          <span class="stock">Stock: ${p.stock}</span>
+          ${p.ean ? `<span>EAN: ${p.ean}</span>` : ''}
+        </div>
+        <div style="margin-top:4px">
+          <span class="pill ${isPala(p) ? 'hi' : ''}" style="font-size:.68rem">${p.product_type || 'Sin tipo'}</span>
+        </div>
+      </div>`;
+
+    // Click en card (no en checkbox) → abrir preview
+    card.addEventListener('click', e => {
+      if (e.target.type === 'checkbox') return;
+      openPreview(p.id);
+    });
+
+    list.appendChild(card);
+  });
+}
+
+function onCheckChange(id, checked) {
+  const card = document.getElementById(`card-${id}`);
+  if (checked) { state.selected.add(id); card.classList.add('selected'); }
+  else         { state.selected.delete(id); card.classList.remove('selected'); }
+  updateSelectedCount();
+}
+
+function toggleAll(checked) {
+  state.products.forEach(p => {
+    document.getElementById(`chk-${p.id}`).checked = checked;
+    onCheckChange(p.id, checked);
+  });
+}
+
+// ── preview ───────────────────────────────────────────────────────────────────
+function openPreview(id) {
+  state.preview = id;
+  switchTab('preview');
+  renderPreview(id);
+}
+
+function renderPreview(id) {
+  // Buscar producto base
+  const base = state.products.find(p => p.id == id);
+  const proc = state.processed[id];
+  const imp  = state.imported[id];
+
+  if (!base) return;
+
+  const m = proc?.miravia || {};
+
+  const thumbHtml = base.image_url
+    ? `<img class="preview-thumb" src="${base.image_url}" onerror="this.style.display='none'" />`
+    : `<div class="product-thumb-placeholder" style="width:72px;height:72px;font-size:1.8rem;">🏓</div>`;
+
+  // Pills de estado
+  let statusPill = '';
+  if (imp)  statusPill = `<span class="pill hi">🎉 Importado</span>`;
+  else if (proc) statusPill = `<span class="pill hi">✅ Procesado</span>`;
+  else      statusPill = `<span class="pill">Sin procesar</span>`;
+
+  // Atributos Miravia (solo si procesado)
+  let attrsHtml = '';
+  if (proc) {
+    const attrList = [
+      { k: 'Marca',     v: m.brand },
+      { k: 'Forma',     v: m.shape },
+      { k: 'Nivel',     v: m.level },
+      { k: 'Balance',   v: m.balance },
+      { k: 'Material',  v: m.material },
+      { k: 'Núcleo',    v: m.nucleus },
+      { k: 'Marco',     v: m.frame },
+      { k: 'EAN',       v: base.ean },
+      { k: 'Precio',    v: base.price ? base.price + ' €' : null },
+      { k: 'Stock',     v: base.stock != null ? base.stock : null },
+    ];
+    const techRow = m.technology
+      ? `<div class="attr-item wide"><div class="attr-label">Tecnologías</div><div class="attr-value">${m.technology}</div></div>`
+      : '';
+    const extraRow = m.additional_attributes
+      ? `<div class="attr-item wide"><div class="attr-label">Atributos extra</div><div class="attr-value">${m.additional_attributes}</div></div>`
+      : '';
+
+    attrsHtml = `
+      <div>
+        <div class="section-title" style="margin-bottom:6px;">Atributos Miravia</div>
+        <div class="attrs-grid">
+          ${attrList.map(a => `
+            <div class="attr-item">
+              <div class="attr-label">${a.k}</div>
+              <div class="attr-value ${a.v != null && a.v !== '' ? '' : 'empty'}">${a.v != null && a.v !== '' ? a.v : '—'}</div>
+            </div>`).join('')}
+          ${techRow}${extraRow}
+        </div>
+      </div>`;
+  }
+
+  // Descripción: tabs original / optimizada
+  const hasOptimized = !!(proc?.description_html);
+  const origDesc  = base.body_html || `<p style="color:var(--muted)"><em>Sin descripción</em></p>`;
+  const optDesc   = proc?.description_html || '';
+
+  const descHtml = `
+    <div>
+      <div class="section-title" style="margin-bottom:6px;">Descripción</div>
+      <div class="desc-tabs">
+        <button class="desc-tab ${hasOptimized ? '' : 'active'}" id="dt-orig"  onclick="showDescTab('orig')">Original</button>
+        ${hasOptimized ? `<button class="desc-tab active" id="dt-opt" onclick="showDescTab('opt')">✨ Optimizada IA</button>` : ''}
+      </div>
+      <div id="desc-orig" class="desc-box" style="${hasOptimized ? 'display:none' : ''}">${origDesc}</div>
+      ${hasOptimized ? `<div id="desc-opt"  class="desc-box">${optDesc}</div>` : ''}
+    </div>`;
+
+  // Import result
+  let importResultHtml = '';
+  if (imp) {
+    importResultHtml = `
+      <div class="import-result ok">
+        <div class="section-title" style="color:#22c55e;margin-bottom:4px;">✅ Importado a Miravia</div>
+        <p>Item ID: <strong>${imp.item_id}</strong></p>
+        <a href="https://www.miravia.es/product/${imp.item_id}" target="_blank"
+           style="color:var(--accent2);font-size:.8rem;">Ver en Miravia →</a>
+      </div>`;
+  } else if (state._importErrors && state._importErrors[id]) {
+    const err = state._importErrors[id];
+    if (err.duplicate) {
+      importResultHtml = `
+        <div class="import-result dup">
+          <div class="section-title" style="color:var(--warn);margin-bottom:4px;">⚠️ EAN ya existe en Miravia</div>
+          <p style="font-size:.78rem;color:var(--muted)">ID existente: ${err.existing_id || '—'}</p>
+          <p style="font-size:.78rem;margin-top:4px;">El producto ya fue publicado anteriormente.</p>
+        </div>`;
+    } else {
+      importResultHtml = `
+        <div class="import-result err">
+          <div class="section-title" style="color:var(--danger);margin-bottom:4px;">❌ Error de importación</div>
+          <p style="font-size:.78rem;">${err.error}</p>
+        </div>`;
+    }
+  }
+
+  document.getElementById('preview-content').innerHTML = `
+    <div class="preview-product">
+      <div class="preview-header">
+        ${thumbHtml}
+        <div style="min-width:0;flex:1">
+          <div class="preview-title">${base.title}</div>
+          <div class="preview-sub">${base.vendor || ''}</div>
+          <div class="preview-pills">${statusPill}</div>
+        </div>
+      </div>
+      ${attrsHtml}
+      ${descHtml}
+      ${importResultHtml}
+    </div>`;
+}
+
+function showDescTab(which) {
+  const orig = document.getElementById('desc-orig');
+  const opt  = document.getElementById('desc-opt');
+  const tOrig = document.getElementById('dt-orig');
+  const tOpt  = document.getElementById('dt-opt');
+  if (which === 'orig') {
+    if (orig) orig.style.display = '';
+    if (opt)  opt.style.display  = 'none';
+    if (tOrig) tOrig.classList.add('active');
+    if (tOpt)  tOpt.classList.remove('active');
+  } else {
+    if (orig) orig.style.display = 'none';
+    if (opt)  opt.style.display  = '';
+    if (tOrig) tOrig.classList.remove('active');
+    if (tOpt)  tOpt.classList.add('active');
+  }
+}
+
+// ── extracción IA ─────────────────────────────────────────────────────────────
+function isPala(p) {
+  return (p.product_type || '').toLowerCase() === 'palas de padel';
+}
+
+async function extractSelected() {
+  const toProcess = state.products.filter(p => state.selected.has(p.id));
+  const palas     = toProcess.filter(isPala);
+  const otros     = toProcess.length - palas.length;
+
+  if (!toProcess.length) return;
+  if (otros > 0) {
+    log(`ℹ️ ${otros} producto(s) no son palas: se optimizará su descripción pero no se extraerán atributos técnicos.`, 'warn');
+  }
+
+  document.getElementById('btn-extract').disabled = true;
+  document.getElementById('extract-progress').style.display = 'block';
+  log(`Iniciando extracción IA para ${toProcess.length} productos…`, 'warn');
+  switchTab('log');
+
+  const bar    = document.getElementById('extract-bar');
+  const status = document.getElementById('extract-status');
+  toProcess.forEach(p => setBadge(p.id, 'loading', '⏳ Procesando'));
+
+  const res = await fetch('/api/extract', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({products: toProcess}),
+  });
+
+  const reader = res.body.getReader();
+  const dec    = new TextDecoder();
+  let done = false, buffer = '';
+
+  while (!done) {
+    const {value, done: d} = await reader.read();
+    done    = d;
+    buffer += dec.decode(value || new Uint8Array(), {stream: !done});
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+
+    for (const line of lines) {
+      if (!line.startsWith('data:')) continue;
+      const evt = JSON.parse(line.slice(5).trim());
+
+      if (evt.type === 'progress') {
+        const pct = Math.round((evt.index / toProcess.length) * 100);
+        bar.style.width = pct + '%';
+        status.textContent = `[${evt.index + 1}/${toProcess.length}] ${evt.title}`;
+        log(`🤖 Extrayendo: ${evt.title}`, 'info');
+
+      } else if (evt.type === 'result') {
+        state.processed[evt.product.id] = evt.product;
+        setBadge(evt.product.id, 'processed', '✅ Listo');
+        log(`✅ Procesado: ${evt.product.title}`, 'ok');
+        // Actualizar preview si es el producto activo
+        if (state.preview == evt.product.id) renderPreview(evt.product.id);
+
+      } else if (evt.type === 'error') {
+        const pid = toProcess[evt.index]?.id;
+        setBadge(pid, 'error', '❌ Error');
+        log(`❌ Error en "${evt.title}": ${evt.error}`, 'err');
+
+      } else if (evt.type === 'done') {
+        bar.style.width = '100%';
+        status.textContent = `✅ Completado — ${Object.keys(state.processed).length} procesados`;
+        log(`🎉 Extracción completada`, 'ok');
+        document.getElementById('btn-extract').disabled = false;
+        document.getElementById('btn-import').disabled = Object.keys(state.processed).length === 0;
+        showSummary();
+      }
+    }
+  }
+}
+
+// ── importar a Miravia ────────────────────────────────────────────────────────
+async function importProcessed() {
+  const toImport = Object.values(state.processed).filter(p => !state.imported[p.id]);
+  if (!toImport.length) { log('No hay productos procesados pendientes de importar', 'warn'); return; }
+
+  state._importErrors = state._importErrors || {};
+  document.getElementById('btn-import').disabled = true;
+  document.getElementById('import-progress').style.display = 'block';
+  log(`Importando ${toImport.length} productos a Miravia…`, 'warn');
+  switchTab('log');
+
+  const bar    = document.getElementById('import-bar');
+  const status = document.getElementById('import-status');
+
+  for (let i = 0; i < toImport.length; i++) {
+    const p = toImport[i];
+    bar.style.width    = Math.round((i / toImport.length) * 100) + '%';
+    status.textContent = `[${i+1}/${toImport.length}] ${p.title}`;
+    setBadge(p.id, 'loading', '⏫ Importando');
+    log(`⏫ Importando: ${p.title}`, 'info');
+
+    try {
+      const res  = await fetch('/api/import', {
+        method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p),
+      });
+      const data = await res.json();
+
+      if (data.ok) {
+        state.imported[p.id] = data;
+        setBadge(p.id, 'imported', '🎉 Importado');
+        log(`🎉 Importado: ${p.title} → item_id: ${data.item_id}`, 'ok');
+      } else if (data.duplicate) {
+        state._importErrors[p.id] = data;
+        setBadge(p.id, 'duplicate', '⚠️ Ya existe');
+        log(`⚠️ EAN duplicado: "${p.title}" ya existe en Miravia (ID: ${data.existing_id || '?'})`, 'warn');
+      } else {
+        state._importErrors[p.id] = data;
+        setBadge(p.id, 'error', '❌ Error');
+        log(`❌ Error: "${p.title}" — ${data.error}`, 'err');
+      }
+    } catch(e) {
+      state._importErrors[p.id] = {error: e.message};
+      setBadge(p.id, 'error', '❌ Error');
+      log(`❌ Excepción: ${e.message}`, 'err');
+    }
+
+    // Actualizar preview si está activo
+    if (state.preview == p.id) renderPreview(p.id);
+    if (i < toImport.length - 1) await sleep(1500);
+  }
+
+  bar.style.width = '100%';
+  status.textContent = '✅ Importación finalizada';
+  document.getElementById('btn-import').disabled = false;
+  showSummary();
+}
+
+// ── helpers UI ────────────────────────────────────────────────────────────────
+const BADGE_STYLES = {
+  loading:   ['badge-loading',   ''],
+  processed: ['badge-processed', 'processed'],
+  imported:  ['badge-imported',  'imported'],
+  duplicate: ['badge-warn',      'duplicate'],
+  error:     ['badge-error',     'error'],
+};
+
+function setBadge(id, type, text) {
+  const card = document.getElementById(`card-${id}`);
+  if (!card) return;
+  let badge = card.querySelector('.badge');
+  if (!badge) { badge = document.createElement('span'); card.appendChild(badge); }
+  const [badgeClass, cardClass] = BADGE_STYLES[type] || ['badge-loading', ''];
+  badge.className   = `badge ${badgeClass}`;
+  badge.textContent = text;
+  card.classList.remove('processed','imported','error','duplicate');
+  if (cardClass) card.classList.add(cardClass);
+}
+
+function showSummary() {
+  const total  = state.products.length;
+  const proc   = Object.keys(state.processed).length;
+  const imp    = Object.keys(state.imported).length;
+  const errs   = Object.keys(state._importErrors || {}).length;
+  document.getElementById('summary-panel').style.display = 'block';
+  document.getElementById('summary-grid').innerHTML = `
+    <div class="attr-item"><div class="attr-label">Shopify</div><div class="attr-value">${total}</div></div>
+    <div class="attr-item"><div class="attr-label">Procesados IA</div><div class="attr-value" style="color:var(--accent2)">${proc}</div></div>
+    <div class="attr-item"><div class="attr-label">Importados</div><div class="attr-value" style="color:#22c55e">${imp}</div></div>
+    <div class="attr-item"><div class="attr-label">Con incidencias</div><div class="attr-value" style="color:var(--warn)">${errs}</div></div>`;
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+document.addEventListener('DOMContentLoaded', () => {
+  log('App iniciada. Carga los productos de Shopify para comenzar.', 'info');
+});
+</script>
+</body>
+</html>

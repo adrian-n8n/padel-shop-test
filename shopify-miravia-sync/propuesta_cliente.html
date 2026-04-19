@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Propuesta de Integración Shopify → Miravia · Pádel Cañaveral</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary: #6c2bd9;
+    --primary-light: #8b5cf6;
+    --accent: #00c896;
+    --dark: #0d0d14;
+    --dark2: #13131f;
+    --surface: #1a1a2e;
+    --surface2: #222238;
+    --border: #2e2e4a;
+    --text: #e8e8f0;
+    --muted: #8888aa;
+    --miravia: #ff4b6e;
+    --shopify: #96bf48;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #ffffff;
+    color: #1a1a2e;
+    line-height: 1.6;
+    font-size: 15px;
+  }
+
+  /* ── PORTADA ─────────────────────────────────────────── */
+  .cover {
+    background: linear-gradient(135deg, #0d0d14 0%, #1a1a2e 50%, #0d1a2e 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 60px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(108,43,217,.25) 0%, transparent 70%);
+    top: -100px; right: -100px;
+  }
+
+  .cover::after {
+    content: '';
+    position: absolute;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(0,200,150,.15) 0%, transparent 70%);
+    bottom: -50px; left: -50px;
+  }
+
+  .cover-badge {
+    background: rgba(108,43,217,.2);
+    border: 1px solid rgba(108,43,217,.4);
+    color: #a78bfa;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: 6px 18px;
+    border-radius: 20px;
+    margin-bottom: 32px;
+    position: relative; z-index: 1;
+  }
+
+  .cover-logos {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 36px;
+    position: relative; z-index: 1;
+  }
+
+  .logo-pill {
+    padding: 10px 24px;
+    border-radius: 12px;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+  }
+
+  .logo-shopify { background: rgba(150,191,72,.15); color: #96bf48; border: 1px solid rgba(150,191,72,.3); }
+  .logo-miravia { background: rgba(255,75,110,.15); color: #ff4b6e; border: 1px solid rgba(255,75,110,.3); }
+
+  .arrow-icon {
+    font-size: 32px;
+    color: #a78bfa;
+  }
+
+  .cover h1 {
+    font-size: 52px;
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1.1;
+    letter-spacing: -.03em;
+    margin-bottom: 20px;
+    position: relative; z-index: 1;
+  }
+
+  .cover h1 span { color: #a78bfa; }
+
+  .cover p.subtitle {
+    font-size: 20px;
+    color: #9999bb;
+    max-width: 580px;
+    margin-bottom: 48px;
+    position: relative; z-index: 1;
+  }
+
+  .cover-stats {
+    display: flex;
+    gap: 32px;
+    position: relative; z-index: 1;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .cover-stat {
+    text-align: center;
+  }
+
+  .cover-stat .val {
+    font-size: 36px;
+    font-weight: 800;
+    color: #ffffff;
+    display: block;
+  }
+
+  .cover-stat .lbl {
+    font-size: 13px;
+    color: #6666aa;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+
+  .cover-footer {
+    position: absolute;
+    bottom: 32px;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 13px;
+    color: #44446a;
+    z-index: 1;
+  }
+
+  /* ── CONTENIDO ───────────────────────────────────────── */
+  .doc {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 80px 40px;
+  }
+
+  .section { margin-bottom: 72px; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 8px;
+  }
+
+  h2 {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    color: #0d0d14;
+    margin-bottom: 20px;
+    line-height: 1.2;
+  }
+
+  h2 span { color: var(--primary); }
+
+  h3 {
+    font-size: 19px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 12px;
+    margin-top: 32px;
+  }
+
+  p { color: #444460; margin-bottom: 14px; }
+
+  /* ── PROBLEMA / SOLUCIÓN ─────────────────────────────── */
+  .pain-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-top: 28px;
+  }
+
+  .pain-card {
+    padding: 28px 32px;
+    background: #f8f6ff;
+  }
+
+  .pain-card.solution { background: #f0fdf8; }
+
+  .pain-card h4 {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 16px;
+  }
+
+  .pain-card.problem h4 { color: #dc2626; }
+  .pain-card.solution h4 { color: var(--accent); }
+
+  .pain-item {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #444460;
+    align-items: flex-start;
+  }
+
+  .pain-item .icon { flex-shrink: 0; font-size: 16px; margin-top: 1px; }
+
+  /* ── CÓMO FUNCIONA ───────────────────────────────────── */
+  .flow-diagram {
+    background: linear-gradient(135deg, #0d0d14, #1a1a2e);
+    border-radius: 20px;
+    padding: 48px 40px;
+    margin-top: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .flow-diagram::before {
+    content: '';
+    position: absolute;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(108,43,217,.2) 0%, transparent 70%);
+    top: -80px; right: -80px;
+  }
+
+  .flow-steps {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    position: relative; z-index: 1;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .flow-step {
+    text-align: center;
+    flex: 1;
+    min-width: 110px;
+    max-width: 150px;
+  }
+
+  .flow-step .circle {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    margin: 0 auto 12px;
+  }
+
+  .flow-step .step-label {
+    font-size: 12px;
+    color: #9999bb;
+    font-weight: 600;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  .flow-step .step-title {
+    font-size: 13px;
+    color: #ffffff;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .flow-arrow {
+    font-size: 24px;
+    color: #44446a;
+    flex-shrink: 0;
+    padding: 0 8px;
+    margin-bottom: 28px;
+  }
+
+  .s1 .circle { background: rgba(150,191,72,.15); border: 2px solid rgba(150,191,72,.4); }
+  .s2 .circle { background: rgba(108,43,217,.15); border: 2px solid rgba(108,43,217,.4); }
+  .s3 .circle { background: rgba(108,43,217,.15); border: 2px solid rgba(108,43,217,.4); }
+  .s4 .circle { background: rgba(0,200,150,.15); border: 2px solid rgba(0,200,150,.4); }
+  .s5 .circle { background: rgba(255,75,110,.15); border: 2px solid rgba(255,75,110,.4); }
+
+  /* ── FUNCIONALIDADES ─────────────────────────────────── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 28px;
+  }
+
+  .feature-card {
+    background: #f8f6ff;
+    border: 1px solid #e8e0ff;
+    border-radius: 14px;
+    padding: 24px 22px;
+    transition: box-shadow .2s;
+  }
+
+  .feature-card:hover { box-shadow: 0 8px 32px rgba(108,43,217,.1); }
+
+  .feature-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .feature-card h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+  }
+
+  .feature-card p {
+    font-size: 13px;
+    color: #666680;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* ── CAPTURA INTERFAZ ────────────────────────────────── */
+  .ui-preview {
+    background: linear-gradient(135deg, #0d0d14, #1a1a2e);
+    border-radius: 20px;
+    padding: 32px;
+    margin-top: 28px;
+  }
+
+  .ui-bar {
+    background: #1a1a2e;
+    border-radius: 10px 10px 0 0;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #2e2e4a;
+  }
+
+  .ui-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .ui-dot.r { background: #ff5f57; }
+  .ui-dot.y { background: #febc2e; }
+  .ui-dot.g { background: #28c840; }
+
+  .ui-url {
+    background: #222238;
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: #6666aa;
+    margin-left: 8px;
+    flex: 1;
+    max-width: 260px;
+  }
+
+  .ui-screen {
+    background: #0f1117;
+    border-radius: 0 0 10px 10px;
+    padding: 24px;
+    min-height: 200px;
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 12px;
+  }
+
+  .ui-products {
+    background: #13131f;
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  .ui-product-row {
+    background: #1a1a2e;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ui-product-img {
+    width: 36px; height: 36px;
+    background: #222238;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .ui-product-name { height: 8px; background: #2e2e4a; border-radius: 4px; width: 140px; }
+  .ui-product-sub { height: 6px; background: #222238; border-radius: 4px; width: 80px; margin-top: 5px; }
+  .ui-product-price { height: 10px; background: rgba(0,200,150,.3); border-radius: 4px; width: 48px; margin-left: auto; }
+
+  .ui-sidebar {
+    background: #13131f;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ui-field {
+    background: #1a1a2e;
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+
+  .ui-field-label { height: 6px; background: #2e2e4a; border-radius: 3px; width: 80px; margin-bottom: 7px; }
+  .ui-field-input { height: 10px; background: #222238; border-radius: 4px; width: 100%; }
+
+  .ui-btn {
+    background: linear-gradient(135deg, #6c2bd9, #8b5cf6);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-top: auto;
+  }
+
+  .ui-log {
+    background: #1a1a2e;
+    border-radius: 6px;
+    padding: 10px;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .ui-log-line {
+    height: 6px;
+    border-radius: 3px;
+    margin-bottom: 6px;
+  }
+
+  /* ── PRECIOS ─────────────────────────────────────────── */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 32px;
+    align-items: start;
+  }
+
+  .price-card {
+    border-radius: 20px;
+    padding: 32px 28px;
+    border: 2px solid #e8e0ff;
+    position: relative;
+    background: #ffffff;
+  }
+
+  .price-card.featured {
+    border-color: var(--primary);
+    background: linear-gradient(135deg, #f8f4ff, #fff);
+    box-shadow: 0 16px 48px rgba(108,43,217,.15);
+  }
+
+  .price-badge {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 5px 16px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .price-name {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #888;
+    margin-bottom: 8px;
+  }
+
+  .price-amount {
+    font-size: 44px;
+    font-weight: 900;
+    color: #0d0d14;
+    letter-spacing: -.03em;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .price-amount sup { font-size: 22px; vertical-align: top; margin-top: 8px; }
+  .price-amount sub { font-size: 16px; color: #888; font-weight: 500; }
+
+  .price-desc {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f0e8ff;
+  }
+
+  .price-features { list-style: none; }
+
+  .price-features li {
+    font-size: 14px;
+    color: #444460;
+    padding: 6px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .price-features li::before {
+    content: '✓';
+    color: var(--accent);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .price-features li.no::before { content: '✗'; color: #ddd; }
+  .price-features li.no { color: #bbb; }
+
+  /* ── ROI ─────────────────────────────────────────────── */
+  .roi-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 24px;
+    font-size: 14px;
+  }
+
+  .roi-table th {
+    background: #f3f0ff;
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    text-align: left;
+  }
+
+  .roi-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0eeff;
+    color: #444460;
+  }
+
+  .roi-table tr:last-child td { border-bottom: none; }
+
+  .roi-table td.highlight {
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .roi-table tr:hover td { background: #faf8ff; }
+
+  /* ── TIMELINE ────────────────────────────────────────── */
+  .timeline { margin-top: 28px; }
+
+  .timeline-item {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+    align-items: start;
+  }
+
+  .timeline-day {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    border-radius: 10px;
+    padding: 10px 14px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .timeline-content {
+    background: #f8f6ff;
+    border-left: 3px solid var(--primary-light);
+    border-radius: 0 10px 10px 0;
+    padding: 16px 20px;
+  }
+
+  .timeline-content h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+  }
+
+  .timeline-content p {
+    font-size: 13px;
+    color: #666680;
+    margin: 0;
+  }
+
+  /* ── CTA FINAL ───────────────────────────────────────── */
+  .cta-section {
+    background: linear-gradient(135deg, #0d0d14, #1a1a2e);
+    border-radius: 24px;
+    padding: 64px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-section::before {
+    content: '';
+    position: absolute;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(108,43,217,.2) 0%, transparent 70%);
+    top: -150px; left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .cta-section h2 {
+    color: #ffffff;
+    font-size: 36px;
+    position: relative; z-index: 1;
+    margin-bottom: 16px;
+  }
+
+  .cta-section p {
+    color: #9999bb;
+    font-size: 17px;
+    max-width: 500px;
+    margin: 0 auto 36px;
+    position: relative; z-index: 1;
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: relative; z-index: 1;
+  }
+
+  .btn-cta {
+    padding: 15px 36px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-primary-cta {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    box-shadow: 0 8px 32px rgba(108,43,217,.4);
+  }
+
+  .btn-secondary-cta {
+    background: rgba(255,255,255,.08);
+    color: #ffffff;
+    border: 1px solid rgba(255,255,255,.15);
+  }
+
+  /* ── GARANTÍA ────────────────────────────────────────── */
+  .guarantee-bar {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 28px;
+    padding: 24px;
+    background: #f8f6ff;
+    border-radius: 14px;
+  }
+
+  .guarantee-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #444460;
+  }
+
+  .guarantee-item .gi { font-size: 22px; }
+
+  /* ── UTILIDADES ──────────────────────────────────────── */
+  .divider {
+    border: none;
+    border-top: 1px solid #f0eeff;
+    margin: 72px 0;
+  }
+
+  @media print {
+    body { font-size: 13px; }
+    .cover { min-height: auto; padding: 60px; page-break-after: always; }
+    .doc { padding: 40px; }
+    .section { page-break-inside: avoid; }
+  }
+
+  /* ── MÓVIL ───────────────────────────────────────────── */
+  @media (max-width: 640px) {
+    body { font-size: 14px; }
+
+    /* Portada */
+    .cover { padding: 48px 20px 64px; min-height: auto; }
+    .cover h1 { font-size: 32px; }
+    .cover p.subtitle { font-size: 16px; margin-bottom: 32px; }
+    .cover-logos { gap: 10px; flex-wrap: wrap; }
+    .logo-pill { font-size: 15px; padding: 8px 16px; }
+    .arrow-icon { font-size: 22px; }
+    .cover-stats { gap: 20px; }
+    .cover-stat .val { font-size: 28px; }
+    .cover-stat .lbl { font-size: 11px; }
+    .cover-badge { font-size: 10px; margin-bottom: 24px; }
+    .cover-footer { position: static; margin-top: 32px; font-size: 11px; }
+
+    /* Contenido */
+    .doc { padding: 40px 20px; }
+    .section { margin-bottom: 48px; }
+    h2 { font-size: 26px; }
+    .cta-section h2 { font-size: 26px; }
+
+    /* Problema / Solución */
+    .pain-grid { grid-template-columns: 1fr; }
+    .pain-card { padding: 22px 20px; }
+
+    /* Flujo */
+    .flow-diagram { padding: 28px 20px; }
+    .flow-steps { flex-direction: column; align-items: center; gap: 4px; }
+    .flow-arrow { transform: rotate(90deg); margin: 0; padding: 4px 0; }
+    .flow-step { max-width: 100%; width: 100%; display: flex; align-items: center; gap: 16px; text-align: left; }
+    .flow-step .circle { margin: 0; flex-shrink: 0; width: 48px; height: 48px; font-size: 20px; }
+    .flow-step .step-label { margin-bottom: 2px; }
+
+    /* UI Preview */
+    .ui-preview { padding: 16px; }
+    .ui-screen { grid-template-columns: 1fr; }
+    .ui-sidebar { display: none; }
+
+    /* Features grid */
+    .features-grid { grid-template-columns: 1fr; }
+
+    /* CTA */
+    .cta-section { padding: 40px 24px; border-radius: 16px; }
+    .cta-section p { font-size: 15px; }
+    .cta-buttons { flex-direction: column; align-items: stretch; }
+    .btn-cta { text-align: center; padding: 14px 24px; font-size: 15px; }
+
+    /* Divider */
+    .divider { margin: 40px 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════ PORTADA ══ -->
+<div class="cover">
+  <div class="cover-badge">Propuesta Técnica y Comercial · Abril 2026</div>
+
+  <div class="cover-logos">
+    <div class="logo-pill" style="background:rgba(234,179,8,.15);color:#eab308;border:1px solid rgba(234,179,8,.3);">Scraper</div>
+    <div class="arrow-icon">→</div>
+    <div class="logo-pill logo-shopify">Shopify</div>
+    <div class="arrow-icon">→</div>
+    <div class="logo-pill logo-miravia">Miravia</div>
+  </div>
+
+  <h1>Pádel Cañaveral,<br><span>en Miravia. Sin esfuerzo.</span></h1>
+  <p class="subtitle">Tu catálogo de palas, zapatillas y accesorios de pádel sincronizado automáticamente en Miravia desde Shopify.</p>
+
+  <div class="cover-stats">
+    <div class="cover-stat">
+      <span class="val">10+</span>
+      <span class="lbl">productos activos ya</span>
+    </div>
+    <div class="cover-stat">
+      <span class="val">0 h</span>
+      <span class="lbl">trabajo manual</span>
+    </div>
+    <div class="cover-stat">
+      <span class="val">100%</span>
+      <span class="lbl">catálogo sincronizado</span>
+    </div>
+    <div class="cover-stat">
+      <span class="val">+1</span>
+      <span class="lbl">canal de ventas</span>
+    </div>
+  </div>
+
+  <div class="cover-footer">Documento confidencial · Preparado exclusivamente para Pádel El Cañaveral SL · Abril 2026</div>
+</div>
+
+<!-- ════════════════════════════════════ CONTENIDO ══ -->
+<div class="doc">
+
+  <!-- ── 1. EL PROBLEMA ── -->
+  <div class="section">
+    <div class="section-label">01 · El problema</div>
+    <h2>Ya estás en Miravia.<br>Ahora, que <span>no te cueste tiempo.</span></h2>
+    <p>Pádel Cañaveral ya tiene productos activos en Miravia — SIUX Electra, Diablo, Valkiria, Fenix… y el primer StarVie importado esta semana. La tienda funciona. Pero cada producto nuevo, cada cambio de precio o de stock en Shopify, hay que replicarlo manualmente en Miravia. Eso tiene un coste real.</p>
+
+    <div class="pain-grid">
+      <div class="pain-card problem">
+        <h4>❌ Situación actual</h4>
+        <div class="pain-item"><span class="icon">⏱️</span>Añadir cada pala nueva a Miravia a mano, campo por campo</div>
+        <div class="pain-item"><span class="icon">🔄</span>Actualizar precios de temporada en Shopify y luego en Miravia por separado</div>
+        <div class="pain-item"><span class="icon">📦</span>Revisar y corregir stock en ambas plataformas tras cada venta</div>
+        <div class="pain-item"><span class="icon">❌</span>Riesgo de sobreventa si el stock no está sincronizado</div>
+        <div class="pain-item"><span class="icon">🕐</span>Horas perdidas cada vez que llega nueva colección (SIUX, Nox, StarVie…)</div>
+        <div class="pain-item"><span class="icon">💸</span>Productos en Shopify que nunca llegan a Miravia por falta de tiempo</div>
+      </div>
+      <div class="pain-card solution">
+        <h4>✅ Con la integración</h4>
+        <div class="pain-item"><span class="icon">🚀</span>Nueva pala en Shopify → publicada en Miravia automáticamente</div>
+        <div class="pain-item"><span class="icon">🔁</span>Precios sincronizados desde Shopify sin tocar Miravia</div>
+        <div class="pain-item"><span class="icon">📊</span>Stock actualizado en tiempo real en ambas plataformas</div>
+        <div class="pain-item"><span class="icon">✔️</span>Sin errores, sin duplicados, sin trabajo repetitivo</div>
+        <div class="pain-item"><span class="icon">⚡</span>Todo el catálogo de pádel sincronizado en minutos</div>
+        <div class="pain-item"><span class="icon">📈</span>Más productos visibles en Miravia = más ventas</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 2. CÓMO FUNCIONA ── -->
+  <div class="section">
+    <div class="section-label">02 · La solución</div>
+    <h2>¿Cómo <span>funciona</span> la integración?</h2>
+    <p>Una aplicación web que corre en tu propio servidor y conecta directamente con las APIs oficiales de Shopify y Miravia. Sin intermediarios, sin suscripciones a terceros, sin dependencias externas. Ya está funcionando con tu tienda <strong>utrsp8-0c.myshopify.com</strong> y tu cuenta de Miravia <strong>Padel el Cañaveral SL</strong>.</p>
+
+    <div class="flow-diagram">
+      <div class="flow-steps">
+        <div class="flow-step s1">
+          <div class="circle">🛍️</div>
+          <div class="step-label">Paso 1</div>
+          <div class="step-title">Catálogo<br>en Shopify</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step s2">
+          <div class="circle">🖥️</div>
+          <div class="step-label">Paso 2</div>
+          <div class="step-title">App lee<br>los productos</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step s3">
+          <div class="circle">⚙️</div>
+          <div class="step-label">Paso 3</div>
+          <div class="step-title">Transforma<br>al formato Miravia</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step s4">
+          <div class="circle">✅</div>
+          <div class="step-label">Paso 4</div>
+          <div class="step-title">Seleccionas<br>qué sincronizar</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step s5">
+          <div class="circle">🎉</div>
+          <div class="step-label">Paso 5</div>
+          <div class="step-title">Publicado<br>en Miravia</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview interfaz -->
+    <div class="ui-preview" style="margin-top:28px;">
+      <div class="ui-bar">
+        <div class="ui-dot r"></div>
+        <div class="ui-dot y"></div>
+        <div class="ui-dot g"></div>
+        <div class="ui-url">localhost:7000 — Shopify → Miravia Sync</div>
+      </div>
+      <div class="ui-screen">
+        <div class="ui-products">
+          <div style="height:6px;background:#2e2e4a;border-radius:3px;width:180px;margin-bottom:14px;"></div>
+          <div class="ui-product-row">
+            <div style="width:16px;height:16px;background:#6c2bd9;border-radius:3px;flex-shrink:0;"></div>
+            <div class="ui-product-img"></div>
+            <div style="flex:1;"><div class="ui-product-name"></div><div class="ui-product-sub"></div></div>
+            <div class="ui-product-price"></div>
+          </div>
+          <div class="ui-product-row" style="opacity:.8;">
+            <div style="width:16px;height:16px;background:#6c2bd9;border-radius:3px;flex-shrink:0;"></div>
+            <div class="ui-product-img"></div>
+            <div style="flex:1;"><div class="ui-product-name" style="width:110px;"></div><div class="ui-product-sub"></div></div>
+            <div class="ui-product-price"></div>
+          </div>
+          <div class="ui-product-row" style="opacity:.6;">
+            <div style="width:16px;height:16px;background:#222238;border-radius:3px;flex-shrink:0;"></div>
+            <div class="ui-product-img"></div>
+            <div style="flex:1;"><div class="ui-product-name" style="width:160px;"></div><div class="ui-product-sub"></div></div>
+            <div class="ui-product-price"></div>
+          </div>
+          <div style="height:5px;background:#1a1a2e;border-radius:3px;width:100%;margin-top:8px;"></div>
+          <div style="height:5px;background:#1a1a2e;border-radius:3px;width:85%;margin-top:5px;"></div>
+        </div>
+        <div class="ui-sidebar">
+          <div class="ui-field">
+            <div class="ui-field-label"></div>
+            <div class="ui-field-input"></div>
+          </div>
+          <div class="ui-field">
+            <div class="ui-field-label"></div>
+            <div class="ui-field-input"></div>
+          </div>
+          <div class="ui-log">
+            <div class="ui-log-line" style="background:rgba(0,200,150,.4);width:90%;"></div>
+            <div class="ui-log-line" style="background:rgba(0,200,150,.3);width:75%;"></div>
+            <div class="ui-log-line" style="background:#2e2e4a;width:85%;"></div>
+            <div class="ui-log-line" style="background:rgba(0,200,150,.2);width:60%;"></div>
+          </div>
+          <div class="ui-btn">🚀 Sincronizar con Miravia</div>
+        </div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:#aaa;margin-top:10px;">Vista previa de la interfaz de la aplicación</p>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 3. FUNCIONALIDADES ── -->
+  <div class="section">
+    <div class="section-label">03 · Funcionalidades</div>
+    <h2>Todo lo que incluye <span>la solución</span></h2>
+
+    <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#eab308;margin-top:0;margin-bottom:16px;">🕷️ Módulo 1 — Scraper de proveedores</h3>
+    <div class="features-grid" style="margin-top:0;margin-bottom:40px;">
+      <div class="feature-card">
+        <span class="feature-icon">🌐</span>
+        <h4>Extracción de cualquier proveedor</h4>
+        <p>Scraper adaptado a tu proveedor habitual que extrae automáticamente nombre, precio, imágenes y descripción de cada pala.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔗</span>
+        <h4>Importación directa a Shopify</h4>
+        <p>Las imágenes se enlazan directamente y los productos se suben a Shopify en bloque sin trabajo manual.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔁</span>
+        <h4>Sin duplicados</h4>
+        <p>Detecta los productos ya existentes y solo procesa los nuevos o modificados. Ideal para actualizar catálogo de temporada.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⚙️</span>
+        <h4>Configurable por tienda</h4>
+        <p>Adaptable a cualquier proveedor de pádel: Padelpoint, Padel Nuestro, Padelstar u otros, sin cambiar el núcleo.</p>
+      </div>
+    </div>
+
+    <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#8b5cf6;margin-bottom:16px;">🔗 Módulo 2 — Sincronización Shopify → Miravia</h3>
+    <div class="features-grid" style="margin-top:0;">
+      <div class="feature-card">
+        <span class="feature-icon">📦</span>
+        <h4>Sincronización de catálogo</h4>
+        <p>Importa todos tus productos de Shopify a Miravia con imágenes, descripciones, variantes y precios.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🎯</span>
+        <h4>Selección granular</h4>
+        <p>Elige exactamente qué productos sincronizar. Filtra por nombre, tipo o SKU. Selección individual o masiva.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔄</span>
+        <h4>Modo crear y actualizar</h4>
+        <p>Crea productos nuevos o actualiza los ya existentes en Miravia con los datos más recientes de Shopify.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📊</span>
+        <h4>Árbol de categorías</h4>
+        <p>Selecciona la categoría correcta de Miravia de forma visual, sin necesidad de conocer los IDs internos.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <h4>Log en tiempo real</h4>
+        <p>Sigue el progreso producto a producto durante la sincronización, con indicadores de OK, error y omitidos.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⚠️</span>
+        <h4>Validación automática</h4>
+        <p>Detecta productos sin imagen o sin SKU antes de enviar, evitando errores en la plataforma de Miravia.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔒</span>
+        <h4>Conexión directa API</h4>
+        <p>Sin intermediarios. Conecta directamente con las APIs oficiales de Shopify y Miravia de forma segura.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🖥️</span>
+        <h4>App local sin internet</h4>
+        <p>Se ejecuta en tu propio ordenador. Tus credenciales y datos nunca salen de tu red local.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🛡️</span>
+        <h4>Cumplimiento de la API</h4>
+        <p>Implementación oficial de la autenticación HMAC-SHA256 requerida por Miravia Open Platform.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── CTA FINAL ── -->
+  <div class="cta-section">
+    <h2>Catálogo completo en Miravia,<br><span style="color:#a78bfa;">sin trabajo extra.</span></h2>
+    <p>Una sola herramienta para gestionar Shopify y Miravia desde el mismo sitio. Todo el catálogo de pádel de Cañaveral sincronizado, actualizado y visible en el marketplace de mayor crecimiento en España.</p>
+    <p style="margin-top:16px;font-size:13px;color:#44446a;">Integración probada con la cuenta real de Pádel El Cañaveral SL · Sin suscripciones a terceros · Sin trabajo manual</p>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,8 @@
+services:
+  sync:
+    build: .
+    ports:
+      - "7001:7000"
+    env_file:
+      - .env
+    restart: unless-stopped
