@@ -32,8 +32,7 @@ COPY shopify-miravia-sync/ ./shopify-miravia-sync/
 COPY portal/              ./portal/
 
 # Configuración nginx (plantilla con ${PORT})
-COPY nginx.conf /etc/nginx/nginx.conf.template
-
+COPY scraper/nginx.conf /etc/nginx/nginx.conf.template
 # Supervisord config + script de arranque
 COPY scraper/supervisord.conf /etc/supervisor/conf.d/apps.conf
 COPY scraper/start.sh         /start.sh
