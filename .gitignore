@@ -2,10 +2,13 @@
 node_modules/
 .next/
 
-# Entorno Python scraper
+# Entorno Python
+.venv/
+**/.venv/
 scraper/.env
 scraper/__pycache__/
 scraper/*.pyc
+shopify-miravia-sync/__pycache__/
 
 # Imágenes descargadas (pesadas, no en repo)
 public/images/products/**/*.jpg
